@@ -17,16 +17,24 @@ const UserButton = dynamic(
 
 export default function HomeAuthStatus() {
   return (
-    <div style={{ marginTop: 16 }}>
+    <div style={{ margin: '24px 0' }}>
       <SignedIn>
-        <span>Signed in</span>
-        <div style={{ display: 'inline-block', marginLeft: 12 }}>
-          <UserButton afterSignOutUrl="/" />
-        </div>
+        <Link href="/dashboard" className="auth-button">
+          Plan More Trips
+        </Link>
       </SignedIn>
       <SignedOut>
-        <Link href="/sign-in">Sign in</Link> |{' '}
-        <Link href="/sign-up">Sign up</Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Link href="/sign-in" className="auth-button" style={{ width: '100%' }}>
+            Sign in
+          </Link>
+          <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', lineHeight: '1.4' }}>
+            Are you a travel agent looking for a beautiful itinerary app for your clients that also saves you time?{' '}
+            <Link href="/sign-up" style={{ color: 'white', textDecoration: 'underline' }}>
+              Sign Up
+            </Link>
+          </p>
+        </div>
       </SignedOut>
     </div>
   );
