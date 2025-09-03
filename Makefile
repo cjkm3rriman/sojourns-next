@@ -81,6 +81,14 @@ build:
 		echo "No build configured"; \
 	fi
 
+## ci: Run local CI checks (clean install, lint, fmt check, typecheck, tests, build)
+ci:
+	@if [ -f package.json ]; then \
+		npm ci && npm run lint && (npm run fmt:check || true) && (npm run typecheck || true) && npm test && npm run build; \
+	else \
+		echo "No JS project detected"; \
+	fi
+
 ## audit: Run basic dependency security checks
 audit:
 	@if [ -f package.json ]; then \

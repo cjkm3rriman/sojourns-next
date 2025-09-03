@@ -11,6 +11,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "fmt:check": "prettier -c .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "fmt": "prettier -w ."
