@@ -5,7 +5,7 @@ export default function Page() {
   return (
     <main>
       <h1>🌎 Sojourns</h1>
-      <p>Where every journey  becomes a story.</p>
+      <p>Where every journey becomes a story.</p>
 
       <HomeAuthStatus />
 
