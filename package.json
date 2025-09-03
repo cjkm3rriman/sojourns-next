@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "description": "Minimal Next.js app scaffold for Sojourns",
+  "type": "module",
   "engines": {
     "node": ">=18.17"
   },
