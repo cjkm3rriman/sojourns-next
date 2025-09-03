@@ -1,4 +1,4 @@
-# Sojourn
+# Sojourns
 
 A concise overview of the project with links to deeper documentation and standard development commands.
 
@@ -30,5 +30,19 @@ A concise overview of the project with links to deeper documentation and standar
 Follow AGENTS.md for style, testing, and PR conventions. Propose architectural changes via ADRs under docs/decisions.
 
 ## Deployment
-- Vercel (recommended): Import the GitHub repo in Vercel, set Node 20, and connect. Environment variables go in Project Settings. Builds run `npm run build`; output is auto-detected.
+- Vercel (recommended): Import the GitHub repo in Vercel. Node 20 is pinned via `.nvmrc`. Environment variables go in Project Settings. Build command: `npm run build` (also set in `vercel.json`).
 - Docker (alternative): Create an image and run in your platform of choice. Example Dockerfile can be added on request.
+
+### One‑click Deploy
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_USER%2FYOUR_REPO)
+
+Replace `YOUR_USER/YOUR_REPO` with your GitHub path.
+
+## Status
+- Vercel Project: https://vercel.com/dashboard/projects/prj_8JL0RVKg3KMlcpKZHIsLhPNj80P3
+
+- GitHub Deployments (Production):
+
+  [![Vercel](https://img.shields.io/github/deployments/YOUR_USER/YOUR_REPO/Production?label=vercel&logo=vercel)](https://vercel.com/YOUR_SCOPE/YOUR_PROJECT)
+
+  Replace `YOUR_USER/YOUR_REPO` with your GitHub repo, and `YOUR_SCOPE/YOUR_PROJECT` with your Vercel scope (user or team) and project slug.

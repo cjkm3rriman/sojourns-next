@@ -1,8 +1,8 @@
 {
-  "name": "sojourn",
+  "name": "sojourns",
   "private": true,
   "version": "0.1.0",
-  "description": "Minimal Next.js app scaffold for Sojourn",
+  "description": "Minimal Next.js app scaffold for Sojourns",
   "engines": {
     "node": ">=18.17"
   },

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Sojourn',
+  title: 'Sojourns',
   description: 'Minimal Next.js scaffold',
 };
 
@@ -12,4 +12,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

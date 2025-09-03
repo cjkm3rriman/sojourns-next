@@ -1,7 +1,7 @@
 # Overview
 
 ## Purpose
-- **Sojourn** is a luxury travel itinerary app that empowers  travel agents to create, manage, and share beautiful itineraries with their clients
+- **Sojourns** is a luxury travel itinerary app that empowers  travel agents to create, manage, and share beautiful itineraries with their clients
 - Agents can upload documents, leverage generative AI to rapidly draft itineraries, and deliver a premium experience to their clients.  
 - Clients (luxury travelers) get a fast, beautiful, polished iOS app to easily review, manage, and add to their trip details.  
 
@@ -33,7 +33,7 @@
 ---
 
 ## Success Metrics
-- **Agent adoption:** Number of agencies actively building itineraries with Sojourn.  
+- **Agent adoption:** Number of agencies actively building itineraries with Sojourns.  
 - **Client engagement:** % of clients opening itineraries in the app vs. PDF only.  
 - **Efficiency gains:** Reduction in average time for agents to create a full itinerary.  
 - **Output quality:** Accuracy/consistency of AI-generated itineraries (manual edits required).  
@@ -55,7 +55,7 @@
 - **Non-goals:**  
   - Android client app (future consideration). 
   - Receive real-time updates from their agent GDS/airline integrations (initially handled via manual upload).    
-  - Direct booking or payments through Sojourn.  
+  - Direct booking or payments through Sojourns.  
   - Deep CRM/marketing automation features.   
 
 ---
