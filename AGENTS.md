@@ -38,3 +38,5 @@ If not using Make, mirror these via npm scripts or task runners.
 - Pin dependencies and run security checks (e.g., make audit) when available.
 - Review third-party licenses for compliance before introducing new deps.
 
+## Coding Proficiency 
+- Computer Science degree, but rusty programmer who has been doing Product for the past 15 years. Low familiarity with react and next

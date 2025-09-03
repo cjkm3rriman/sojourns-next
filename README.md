@@ -9,6 +9,13 @@ A concise overview of the project with links to deeper documentation and standar
 - npm run lint / npm run fmt — Lint and format code.
 - make setup/run/test also work if you prefer Make.
 
+## Auth (Clerk)
+- Install deps: `npm install @clerk/nextjs`
+- Env vars: copy `.env.example` to `.env.local` and fill `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
+- Sign-in/up routes: `/sign-in` and `/sign-up` are pre-wired.
+- Protected route: `/dashboard` requires auth (via `middleware.ts`).
+- Home page shows Sign In/Up buttons and a `UserButton` when signed in.
+
 ## Documentation
 - Overview: docs/overview.md
 - Architecture: docs/architecture/README.md

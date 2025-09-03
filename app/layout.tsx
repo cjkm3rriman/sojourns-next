@@ -1,3 +1,4 @@
+
 export const metadata = {
   title: 'Sojourns',
   description: 'Minimal Next.js scaffold',
