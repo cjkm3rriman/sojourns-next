@@ -1,15 +1,15 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-// Run Clerk on all routes so auth() works everywhere; keep these routes public
-export default clerkMiddleware({
-  publicRoutes: ["/", "/sign-in(.*)", "/sign-up(.*)"]
+// Public routes (no auth required)
+const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)']);
+
+// Protect everything else
+export default clerkMiddleware((auth, req) => {
+  if (isPublicRoute(req)) return;
+  auth().protect();
 });
 
 // Apply to all app routes, excluding static files and _next internals, plus root and API
 export const config = {
-  matcher: [
-    "/((?!.+\\.[\\w]+$|_next).*)",
-    "/",
-    "/(api|trpc)(.*)"
-  ]
+  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };

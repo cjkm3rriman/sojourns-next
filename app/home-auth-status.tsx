@@ -1,5 +1,6 @@
-"use client";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+'use client';
+import Link from 'next/link';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function HomeAuthStatus() {
   return (
@@ -11,7 +12,8 @@ export default function HomeAuthStatus() {
         </div>
       </SignedIn>
       <SignedOut>
-        <a href="/sign-in">Sign in</a> | <a href="/sign-up">Sign up</a>
+        <Link href="/sign-in">Sign in</Link> |{' '}
+        <Link href="/sign-up">Sign up</Link>
       </SignedOut>
     </div>
   );

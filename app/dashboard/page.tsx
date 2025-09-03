@@ -1,5 +1,5 @@
-"use client";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+'use client';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function DashboardPage() {
   return (
