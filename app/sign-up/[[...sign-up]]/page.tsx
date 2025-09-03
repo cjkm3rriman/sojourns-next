@@ -1,5 +1,12 @@
 'use client';
-import { SignUp } from '@clerk/nextjs';
+import NextDynamic from 'next/dynamic';
+export const dynamic = 'force-dynamic';
+const SignUp = NextDynamic(
+  () => import('@clerk/nextjs').then((m) => m.SignUp),
+  {
+    ssr: false,
+  },
+);
 
 export default function SignUpPage() {
   return (

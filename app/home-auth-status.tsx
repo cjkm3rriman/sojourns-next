@@ -1,6 +1,19 @@
 'use client';
 import Link from 'next/link';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import dynamic from 'next/dynamic';
+
+const SignedIn = dynamic(
+  () => import('@clerk/nextjs').then((m) => m.SignedIn),
+  { ssr: false },
+);
+const SignedOut = dynamic(
+  () => import('@clerk/nextjs').then((m) => m.SignedOut),
+  { ssr: false },
+);
+const UserButton = dynamic(
+  () => import('@clerk/nextjs').then((m) => m.UserButton),
+  { ssr: false },
+);
 
 export default function HomeAuthStatus() {
   return (

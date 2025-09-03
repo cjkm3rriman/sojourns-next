@@ -1,5 +1,18 @@
 'use client';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import NextDynamic from 'next/dynamic';
+export const dynamic = 'force-dynamic';
+const SignedIn = NextDynamic(
+  () => import('@clerk/nextjs').then((m) => m.SignedIn),
+  { ssr: false },
+);
+const SignedOut = NextDynamic(
+  () => import('@clerk/nextjs').then((m) => m.SignedOut),
+  { ssr: false },
+);
+const UserButton = NextDynamic(
+  () => import('@clerk/nextjs').then((m) => m.UserButton),
+  { ssr: false },
+);
 
 export default function DashboardPage() {
   return (
