@@ -1,0 +1,31 @@
+{
+  "name": "sojourn",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Minimal Next.js app scaffold for Sojourn",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "echo 'No tests yet' && exit 0",
+    "fmt": "prettier -w ."
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.2.66",
+    "@eslint/eslintrc": "^3.1.0",
+    "eslint": "^9.8.0",
+    "eslint-config-next": "^15.0.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  }
+}
