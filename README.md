@@ -39,10 +39,8 @@ Follow AGENTS.md for style, testing, and PR conventions. Propose architectural c
 Replace `YOUR_USER/YOUR_REPO` with your GitHub path.
 
 ## Status
-- Vercel Project: https://vercel.com/dashboard/projects/prj_8JL0RVKg3KMlcpKZHIsLhPNj80P3
+- Vercel Project: https://vercel.com/callum-merrimans-projects/sojourns-next
 
 - GitHub Deployments (Production):
 
-  [![Vercel](https://img.shields.io/github/deployments/YOUR_USER/YOUR_REPO/Production?label=vercel&logo=vercel)](https://vercel.com/YOUR_SCOPE/YOUR_PROJECT)
-
-  Replace `YOUR_USER/YOUR_REPO` with your GitHub repo, and `YOUR_SCOPE/YOUR_PROJECT` with your Vercel scope (user or team) and project slug.
+  [![Vercel](https://img.shields.io/github/deployments/cjkm3rriman/sojourns-next/Production?label=vercel&logo=vercel)](https://vercel.com/callum-merrimans-projects/sojourns-next)
