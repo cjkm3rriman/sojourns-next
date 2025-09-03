@@ -9,6 +9,15 @@ A concise overview of the project with links to deeper documentation and standar
 - npm run lint / npm run fmt — Lint and format code.
 - make setup/run/test also work if you prefer Make.
 
+## Getting Started
+- Prereqs: Node >= 18.17 (see `.nvmrc`), npm or pnpm, and Git.
+- Setup:
+  - Copy envs: `cp .env.example .env.local` and fill Clerk keys.
+  - Install deps: `make setup` (or `npm ci`).
+- Develop: `make run` (or `npm run dev`) and visit http://localhost:3000.
+- Test: `make test` (or `npm test`) for unit tests with coverage (Vitest).
+- Lint/Format: `make lint` and `make fmt` (or `npm run lint` / `npm run fmt`).
+
 ## Auth (Clerk)
 - Install deps: `npm install @clerk/nextjs`
 - Env vars: copy `.env.example` to `.env.local` and fill `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
@@ -25,13 +34,12 @@ A concise overview of the project with links to deeper documentation and standar
 - Contributor Guide: AGENTS.md
 
 ## Repository Structure
-- app/ — Next.js App Router pages/components.
-- public/ — Static assets served at root.
-- src/ — Additional libraries/modules (optional).
-- tests/ — Unit/integration tests (optional).
-- scripts/ — Local/CI helper scripts.
-- docs/ — Overview, architecture, ADRs, roadmap, glossary.
-- public/ or assets/ — Static assets if applicable.
+- `app/`: Next.js App Router pages/components.
+- `public/`: Static assets served at root.
+- `src/`: Additional libraries/modules. Example: `src/lib/date.ts`.
+- `tests/`: Unit/integration tests mirroring `src/`. Fixtures under `tests/fixtures`, sample data under `tests/data`.
+- `scripts/`: Local/CI helper scripts.
+- `docs/`: Overview, architecture, ADRs, roadmap, glossary.
 
 ## Contributing
 Follow AGENTS.md for style, testing, and PR conventions. Propose architectural changes via ADRs under docs/decisions.
