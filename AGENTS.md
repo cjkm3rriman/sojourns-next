@@ -39,4 +39,4 @@ If not using Make, mirror these via npm scripts or task runners.
 - Review third-party licenses for compliance before introducing new deps.
 
 ## Coding Proficiency 
-- Computer Science degree, but rusty programmer who has been doing Product for the past 15 years. Low familiarity with react and next
+- Computer Science degree, but rusty programmer who has been doing Product for the past 15 years. Low familiarity with react and next. Explaing what you are doing more than you would typically. Keep things simple unless complexity needed to achieve goals.
