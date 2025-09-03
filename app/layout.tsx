@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/nextjs';
+import Providers from './providers';
 
 export const metadata = {
   title: 'Sojourns',
@@ -15,11 +15,7 @@ export default function RootLayout({
       <body
         style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 24 }}
       >
-        <ClerkProvider
-          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-        >
-          {children}
-        </ClerkProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
