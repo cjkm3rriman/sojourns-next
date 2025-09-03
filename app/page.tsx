@@ -4,8 +4,8 @@ import HomeAuthStatus from './home-auth-status';
 export default function Page() {
   return (
     <main>
-      <h1>Hello, world 👋</h1>
-      <p>Welcome to the Sojourns Next.js scaffold.</p>
+      <h1>🌎 Sojourns</h1>
+      <p>Where every journey  becomes a story.</p>
 
       <HomeAuthStatus />
 
