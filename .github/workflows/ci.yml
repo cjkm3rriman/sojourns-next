@@ -9,21 +9,35 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Dummy envs so Next.js build and Clerk provider mount cleanly
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dummy
+      CLERK_SECRET_KEY: sk_test_dummy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version-file: .nvmrc
+          cache: npm
+
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
+
       - name: Lint
-        run: |
-          npm run lint --if-present
+        run: npm run lint
+
+      - name: Format check
+        run: npm run fmt:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
       - name: Build
-        run: |
-          npm run build
+        run: npm run build
 
