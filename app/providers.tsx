@@ -1,10 +1,10 @@
-"use client";
-import React from "react";
-import dynamic from "next/dynamic";
+'use client';
+import React from 'react';
+import dynamic from 'next/dynamic';
 
 const ClerkProviderDynamic = dynamic(
-  () => import("@clerk/nextjs").then((m) => m.ClerkProvider),
-  { ssr: false }
+  () => import('@clerk/nextjs').then((m) => m.ClerkProvider),
+  { ssr: false },
 );
 
 export default function Providers({ children }: { children: React.ReactNode }) {
