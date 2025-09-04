@@ -21,7 +21,7 @@
   -webkit-backdrop-filter: blur(15px) saturate(130%);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 
+  box-shadow:
     0 8px 32px 0 rgba(31, 38, 135, 0.25),
     0 2px 8px 0 rgba(255, 255, 255, 0.1) inset,
     0 -2px 8px 0 rgba(0, 0, 0, 0.1) inset;
@@ -40,12 +40,30 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-  background-size: 40px 40px, 60px 60px, 80px 80px;
-  background-position: 0 0, 20px 20px, 40px 40px;
+  background-image:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 40% 60%,
+      rgba(255, 255, 255, 0.01) 1px,
+      transparent 1px
+    );
+  background-size:
+    40px 40px,
+    60px 60px,
+    80px 80px;
+  background-position:
+    0 0,
+    20px 20px,
+    40px 40px;
   pointer-events: none;
   border-radius: 16px;
 }
@@ -57,12 +75,14 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.4) 20%, 
-    rgba(255, 255, 255, 0.6) 50%, 
-    rgba(255, 255, 255, 0.4) 80%, 
-    transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 80%,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
@@ -84,12 +104,11 @@ h1 {
   text-transform: uppercase;
   margin: 0 0 1rem 0;
   font-size: 2.5rem;
-  text-shadow: 
+  text-shadow:
     0 0 10px rgba(255, 255, 255, 0.037),
     0 0 20px rgba(255, 255, 255, 0.025),
     0 0 30px rgba(255, 255, 255, 0.012);
 }
-
 
 .auth-button {
   display: inline-block;
@@ -106,7 +125,6 @@ h1 {
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
-
 
 .auth-button:hover {
   background: rgba(25, 35, 110, 0.3);
