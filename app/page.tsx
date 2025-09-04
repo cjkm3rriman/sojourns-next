@@ -10,18 +10,22 @@ export default function Page() {
 
         <HomeAuthStatus />
       </main>
-      
+
       <div className="tagline-container">
         <div className="tagline-icon">
-          <Image 
-            src="/images/sojourns-passport.png" 
-            alt="Journey icon" 
-            width={72} 
+          <Image
+            src="/images/sojourns-passport.png"
+            alt="Journey icon"
+            width={72}
             height={72}
             style={{ objectFit: 'contain' }}
           />
         </div>
-        <p className="tagline">Where every journey<br />&nbsp;&nbsp;becomes a story.</p>
+        <p className="tagline">
+          Where every journey
+          <br />
+          &nbsp;&nbsp;becomes a story.
+        </p>
       </div>
     </div>
   );

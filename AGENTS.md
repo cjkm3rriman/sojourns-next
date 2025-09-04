@@ -35,6 +35,7 @@ This repository favors simple Makefile wrappers. Examples:
 
 ## Commit & Pull Request Guidelines
 
+- Pre-commit: Always run `make ci` before committing and pushing to GitHub to ensure all checks pass.
 - Commits: Conventional Commits (feat|fix|docs|refactor|test|build|ci|chore): concise, imperative subject; useful body.
 - PRs: Small, focused changes. Include description, linked issues, screenshots (if UI), and test/validation steps.
 - Checks: Lint, format, tests, and coverage must pass. Update docs for user-visible changes.

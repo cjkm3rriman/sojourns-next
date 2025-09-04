@@ -17,7 +17,15 @@ const UserButton = dynamic(
 
 export default function HomeAuthStatus() {
   return (
-    <div style={{ margin: '24px 0', minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <div
+      style={{
+        margin: '24px 0',
+        minHeight: '120px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+      }}
+    >
       <SignedIn>
         <Link href="/dashboard" className="auth-button">
           Plan More Trips
@@ -25,12 +33,26 @@ export default function HomeAuthStatus() {
       </SignedIn>
       <SignedOut>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Link href="/sign-in" className="auth-button" style={{ width: '100%' }}>
+          <Link
+            href="/sign-in"
+            className="auth-button"
+            style={{ width: '100%' }}
+          >
             Sign in
           </Link>
-          <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', lineHeight: '1.4' }}>
-            Are you a travel agent looking for a beautiful itinerary app for your clients that also saves you time?{' '}
-            <Link href="/sign-up" style={{ color: 'white', textDecoration: 'underline' }}>
+          <p
+            style={{
+              margin: '8px 0 0 0',
+              fontSize: '0.9rem',
+              lineHeight: '1.4',
+            }}
+          >
+            Are you a travel agent looking for a beautiful itinerary app for
+            your clients that also saves you time?{' '}
+            <Link
+              href="/sign-up"
+              style={{ color: 'white', textDecoration: 'underline' }}
+            >
               Sign Up
             </Link>
           </p>

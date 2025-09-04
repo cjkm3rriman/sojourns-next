@@ -29,13 +29,14 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${inter.className} ${sojournsFont.variable}`}
-        style={{ 
-          margin: 0, 
+        style={{
+          margin: 0,
           padding: 0,
           backgroundColor: '#111111',
-          backgroundImage: 'linear-gradient(-135deg, #131945 0%, transparent 50%)',
+          backgroundImage:
+            'linear-gradient(-135deg, #131945 0%, transparent 50%)',
           color: 'white',
-          minHeight: '100vh'
+          minHeight: '100vh',
         }}
       >
         <Providers>{children}</Providers>
