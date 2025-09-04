@@ -17,7 +17,7 @@ const UserButton = dynamic(
 
 export default function HomeAuthStatus() {
   return (
-    <div style={{ margin: '24px 0' }}>
+    <div style={{ margin: '24px 0', minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
       <SignedIn>
         <Link href="/dashboard" className="auth-button">
           Plan More Trips

@@ -38,8 +38,18 @@ h1 {
   font-family: var(--font-sojourns), serif;
   text-transform: uppercase;
   margin: 0 0 1rem 0;
-  text-shadow: 1px 1px 0 black;
   font-size: 2.5rem;
+  text-shadow: 1px 1px 0 black;
+  animation: shimmer 5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .auth-button {
@@ -70,4 +80,9 @@ h1 {
   text-align: left;
   margin: 0;
   line-height: 1.2;
+  opacity: 0.8;
+}
+
+p {
+  opacity: 0.8;
 }
