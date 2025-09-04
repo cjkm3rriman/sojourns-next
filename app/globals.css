@@ -8,17 +8,62 @@
   box-sizing: border-box;
 }
 
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .content-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(15px) saturate(130%);
+  -webkit-backdrop-filter: blur(15px) saturate(130%);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-  padding: 2rem 2rem 1rem 2rem;
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.25),
+    0 2px 8px 0 rgba(255, 255, 255, 0.1) inset,
+    0 -2px 8px 0 rgba(0, 0, 0, 0.1) inset;
+  padding: 2rem 2.5rem 1rem 2.5rem;
   text-align: center;
-  max-width: 320px;
+  max-width: 340px;
   width: 90%;
+  position: relative;
+  overflow: hidden;
+}
+
+.content-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+  background-size: 40px 40px, 60px 60px, 80px 80px;
+  background-position: 0 0, 20px 20px, 40px 40px;
+  pointer-events: none;
+  border-radius: 16px;
+}
+
+.content-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.4) 20%, 
+    rgba(255, 255, 255, 0.6) 50%, 
+    rgba(255, 255, 255, 0.4) 80%, 
+    transparent 100%);
+  pointer-events: none;
 }
 
 .tagline-container {
@@ -39,37 +84,33 @@ h1 {
   text-transform: uppercase;
   margin: 0 0 1rem 0;
   font-size: 2.5rem;
-  text-shadow: 1px 1px 0 black;
-  animation: shimmer 5s ease-in-out infinite;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.037),
+    0 0 20px rgba(255, 255, 255, 0.025),
+    0 0 30px rgba(255, 255, 255, 0.012);
 }
 
-@keyframes shimmer {
-  0%,
-  100% {
-    opacity: 0.95;
-  }
-  50% {
-    opacity: 1;
-  }
-}
 
 .auth-button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(25, 35, 110, 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: none;
+  border: 1px solid rgba(25, 35, 110, 0.5);
   border-radius: 8px;
   color: white;
+  text-shadow: 1px 1px 0 black;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
+
 .auth-button:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(25, 35, 110, 0.3);
+  border-color: rgba(25, 35, 110, 0.6);
   transform: translateY(-1px);
 }
 

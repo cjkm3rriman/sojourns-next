@@ -38,7 +38,7 @@ export default function HomeAuthStatus() {
             className="auth-button"
             style={{ width: '100%' }}
           >
-            Sign in
+            Sign In
           </Link>
           <p
             style={{

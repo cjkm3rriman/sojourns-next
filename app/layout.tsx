@@ -34,7 +34,7 @@ export default function RootLayout({
           padding: 0,
           backgroundColor: '#111111',
           backgroundImage:
-            'linear-gradient(-135deg, #131945 0%, transparent 50%)',
+            'linear-gradient(-135deg, #131945 10%, transparent 50%)',
           color: 'white',
           minHeight: '100vh',
         }}
