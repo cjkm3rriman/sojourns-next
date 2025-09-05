@@ -21,18 +21,8 @@ export default function Page() {
 
   return (
     <div className="centered-container">
-      <div className="logo-container">
-        <Image
-          src={randomImage}
-          alt="Travel destination"
-          width={72}
-          height={72}
-          style={{ objectFit: 'contain' }}
-        />
-      </div>
+      <h1>Sojourns</h1>
       <main className="content-card">
-        <h1>Sojourns</h1>
-
         <HomeAuthStatus />
       </main>
 
