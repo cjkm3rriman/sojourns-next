@@ -47,7 +47,7 @@ export default function Page() {
           />
         </div>
         <p className="tagline">
-          Where every journey
+          where every journey
           <br />
           &nbsp;&nbsp;becomes a story.
         </p>
