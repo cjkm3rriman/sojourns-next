@@ -1,0 +1,11 @@
+{
+  "name": "sojourns-scripts",
+  "private": true,
+  "scripts": {
+    "cleanup:test-accounts": "tsx cleanup-test-accounts.ts",
+    "cleanup:dry-run": "tsx cleanup-test-accounts.ts --dry-run"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0"
+  }
+}

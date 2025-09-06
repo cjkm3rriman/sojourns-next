@@ -117,20 +117,27 @@ h1 {
     0 0 30px rgba(255, 255, 255, 0.012);
 }
 
+/* Legacy auth button - use .btn .btn-accent for new components */
 .auth-button {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(25, 35, 110, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(25, 35, 110, 0.5);
   border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+  box-sizing: border-box;
+  background: rgba(25, 35, 110, 0.2);
+  border: 1px solid rgba(25, 35, 110, 0.5);
   color: white;
   text-shadow: 1px 1px 0 black;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .auth-button:hover {
@@ -150,8 +157,15 @@ h1 {
   opacity: 0.8;
 }
 
+/* Reusable Sojourns display text */
+.sojourn-text {
+  font-family: var(--font-sojourns), serif;
+  text-transform: uppercase;
+  color: #fff;
+}
+
 p {
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .dashboard-card {
@@ -219,4 +233,85 @@ p {
     transparent 100%
   );
   pointer-events: none;
+}
+
+/* Base Button System */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+/* Primary glassmorphism button */
+.btn-primary {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Secondary button (less prominent) */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Accent button (blue theme) */
+.btn-accent {
+  background: rgba(25, 35, 110, 0.2);
+  border: 1px solid rgba(25, 35, 110, 0.5);
+  color: white;
+  text-shadow: 1px 1px 0 black;
+}
+
+.btn-accent:hover {
+  background: rgba(25, 35, 110, 0.3);
+  border-color: rgba(25, 35, 110, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Size variants */
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Width variants */
+.btn-full {
+  width: 100%;
+}
+
+.btn-auto {
+  width: auto;
+}
+
+/* Icon styling */
+.btn-icon {
+  font-size: 1.1rem;
 }

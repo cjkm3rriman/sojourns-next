@@ -37,6 +37,7 @@ export default function RootLayout({
             'linear-gradient(-135deg, #131945 10%, transparent 50%)',
           color: 'white',
           minHeight: '100vh',
+          paddingTop: '3rem',
         }}
       >
         <Providers>{children}</Providers>

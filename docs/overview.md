@@ -90,6 +90,83 @@
 
 ---
 
+## Production Deployment Checklist
+
+### Environment Setup
+
+- [ ] **Neon Database:** Create main branch for production
+- [ ] **Clerk:** Create production application instance
+- [ ] **Vercel:** Configure production environment variables:
+  - `DATABASE_URL` → Production Neon connection string
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` → Production Clerk key
+  - `CLERK_SECRET_KEY` → Production Clerk secret
+  - `CLERK_WEBHOOK_SECRET` → Production webhook secret
+
+### Webhook Configuration
+
+- [ ] **Clerk Webhooks:** Configure production webhooks
+  - Endpoint: `https://your-domain.com/api/webhooks/clerk`
+  - Events: `user.*`, `organization.*`, `organizationMembership.*`
+  - Copy webhook secret to environment variables
+- [ ] **Database Migration:** Run initial schema migration on production
+- [ ] **Initial Data Sync:** Use `/api/sync-clerk` for existing Clerk data
+
+### Security & Monitoring
+
+- [ ] **Environment Variables:** Verify all secrets are production-ready
+- [ ] **Database Access:** Ensure production DB is properly secured
+- [ ] **Webhook Security:** Verify signature validation is working
+- [ ] **Error Monitoring:** Set up logging for webhook events
+
+### Testing
+
+- [ ] **Manual Tests:** Test user/org creation, updates, deletions in Clerk
+- [ ] **Database Sync:** Verify changes appear in production database
+- [ ] **Rollback Plan:** Document how to disable webhooks if needed
+
+---
+
+## Development & Maintenance
+
+### Test Account Cleanup
+
+Regular cleanup of test accounts is important to maintain clean development environments and avoid hitting Clerk limits.
+
+**Manual Cleanup Scripts:**
+
+```bash
+# Preview what would be deleted
+cd scripts && npx tsx cleanup-test-accounts.ts --dry-run
+
+# Delete test accounts from Clerk
+cd scripts && npx tsx cleanup-test-accounts.ts
+
+# Clean orphaned database records
+cd scripts && npx tsx cleanup-database.ts --dry-run
+cd scripts && npx tsx cleanup-database.ts
+```
+
+**Automated Cleanup:**
+
+- GitHub Action runs weekly (Sundays 2 AM UTC)
+- Manual trigger available in Actions tab
+- Always defaults to dry-run for safety
+
+**Test Account Patterns:**
+
+- Emails: `test*@*`, `*@test.*`, `*@example.com`, `*+test@*`
+- Organizations: `*test*`, `*demo*`, `*example*`
+- Customizable in `scripts/cleanup-test-accounts.ts`
+
+**Safety Features:**
+
+- Dry-run mode prevents accidental deletions
+- Pattern-based identification reduces false positives
+- Database cleanup maintains referential integrity
+- Detailed logging for audit trails
+
+---
+
 ## Links
 
 - **Architecture:** `./architecture/README.md`

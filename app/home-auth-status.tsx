@@ -27,7 +27,7 @@ export default function HomeAuthStatus() {
       }}
     >
       <SignedIn>
-        <Link href="/dashboard" className="auth-button">
+        <Link href="/trips" className="auth-button">
           Plan More Trips
         </Link>
       </SignedIn>
