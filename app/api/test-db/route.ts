@@ -25,3 +25,5 @@ export async function GET() {
     );
   }
 }
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';

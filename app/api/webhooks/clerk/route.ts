@@ -409,3 +409,5 @@ async function handleMembershipDelete(
     console.log(`Deleted membership: ${user.name} -> ${organization.name}`);
   }
 }
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';

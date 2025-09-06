@@ -41,7 +41,9 @@ async function cleanupOrphanedUsers() {
     if (!DRY_RUN) {
       try {
         // Delete memberships first (foreign key constraint)
-        await getDb().delete(memberships).where(eq(memberships.userId, user.id));
+        await getDb()
+          .delete(memberships)
+          .where(eq(memberships.userId, user.id));
 
         // Delete user
         await getDb().delete(users).where(eq(users.id, user.id));
