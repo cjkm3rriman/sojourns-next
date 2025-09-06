@@ -3,14 +3,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
   padding: 24px;
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .centered-container {
-    padding: 24px 20px;
+    padding: 16px 24px;
+    height: 100vh;
   }
 }
 
@@ -34,9 +35,19 @@
   padding: 2rem 2.5rem 1.5rem 2.5rem;
   text-align: center;
   max-width: 340px;
-  width: 90%;
+  width: 100%;
+  box-sizing: border-box;
   position: relative;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .content-card {
+    padding: 1.5rem 1rem;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
 }
 
 .content-card::before {
@@ -117,6 +128,13 @@ h1 {
     0 0 30px rgba(255, 255, 255, 0.012);
 }
 
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+  }
+}
+
 /* Legacy auth button - use .btn .btn-accent for new components */
 .auth-button {
   display: inline-flex;
@@ -180,6 +198,14 @@ p {
     0 -2px 8px 0 rgba(0, 0, 0, 0.1) inset;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .dashboard-card {
+    margin: 0;
+    width: 100%;
+  }
 }
 
 .dashboard-card::before {
@@ -314,4 +340,75 @@ p {
 /* Icon styling */
 .btn-icon {
   font-size: 1.1rem;
+}
+
+/* Mobile-specific responsive fixes */
+@media (max-width: 768px) {
+  /* Ensure no horizontal overflow */
+  body,
+  html {
+    overflow-x: hidden;
+  }
+
+  /* Fix any potential width issues */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Mobile dashboard card padding */
+  .dashboard-card {
+    padding: 1.5rem 1rem !important;
+  }
+
+  /* Fix form inputs on mobile */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Ultra small screen adjustments */
+@media (max-width: 480px) {
+  .dashboard-card {
+    padding: 1rem 0.75rem !important;
+  }
+
+  .centered-container {
+    padding: 12px 20px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+}
+
+/* Trips page mobile layout fixes */
+@media (max-width: 768px) {
+  /* Convert grid to single column on mobile */
+  main[style*='grid-template-columns'] {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 1rem !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* Create trip page - ensure Miles image and text stay together */
+@media (max-width: 600px) {
+  /* Reduce gap on very small screens but keep no-wrap */
+  .dashboard-card div[style*='gap: 1.5rem'] {
+    gap: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-card div[style*='gap: 1.5rem'] {
+    gap: 0.75rem !important;
+  }
 }

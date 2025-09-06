@@ -74,7 +74,8 @@ export default function DashboardPage() {
         display: 'flex',
         justifyContent: 'center',
         width: '100%',
-        minHeight: '100vh',
+        height: '100vh',
+        boxSizing: 'border-box',
       }}
     >
       <main
@@ -83,9 +84,11 @@ export default function DashboardPage() {
           gridTemplateColumns: '2.5fr 1fr',
           gap: '2rem',
           padding: '2rem',
-          minHeight: 'calc(100vh - 4rem)',
+          height: '100vh',
           maxWidth: '1200px',
           width: '100%',
+          boxSizing: 'border-box',
+          overflow: 'auto',
         }}
       >
         <div>

@@ -75,7 +75,8 @@ export default function CreateTripPage() {
         justifyContent: 'center',
         width: '100%',
         minHeight: 'calc(100vh - 3rem)',
-        padding: '2rem',
+        padding: '2rem 1rem',
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -116,6 +117,7 @@ export default function CreateTripPage() {
               alignItems: 'center',
               gap: '1.5rem',
               marginBottom: '2rem',
+              flexWrap: 'nowrap',
             }}
           >
             <div
