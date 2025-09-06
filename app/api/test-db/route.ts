@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { organizations } from '@/lib/db/schema';
 
 export async function GET() {
   try {
     console.log('Testing database connection...');
+    const db = getDb();
     const result = await db.select().from(organizations).limit(5);
 
     return NextResponse.json({

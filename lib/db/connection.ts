@@ -1,9 +1,17 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is required');
-}
+let cachedDb: ReturnType<typeof drizzle> | null = null;
 
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql);
+export function getDb() {
+  if (cachedDb) return cachedDb;
+
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error('DATABASE_URL is required');
+  }
+
+  const sql = neon(url);
+  cachedDb = drizzle(sql);
+  return cachedDb;
+}

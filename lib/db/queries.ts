@@ -1,9 +1,10 @@
 import { eq, and } from 'drizzle-orm';
-import { db } from './connection';
+import { getDb } from './connection';
 import { organizations, users, memberships } from './schema';
 
 // Organization queries
 export async function getOrganizationByClerkId(clerkOrgId: string) {
+  const db = getDb();
   return db
     .select()
     .from(organizations)
@@ -16,11 +17,13 @@ export async function createOrganization(data: {
   name: string;
   slug: string;
 }) {
+  const db = getDb();
   return db.insert(organizations).values(data).returning();
 }
 
 // User queries
 export async function getUserByClerkId(clerkUserId: string) {
+  const db = getDb();
   return db
     .select()
     .from(users)
@@ -34,11 +37,13 @@ export async function createUser(data: {
   name: string;
   role: 'agent' | 'traveler';
 }) {
+  const db = getDb();
   return db.insert(users).values(data).returning();
 }
 
 // Membership queries
 export async function getUserMemberships(userId: string) {
+  const db = getDb();
   return db
     .select({
       membership: memberships,
@@ -54,6 +59,7 @@ export async function createMembership(data: {
   organizationId: string;
   role: 'admin' | 'agent' | 'member';
 }) {
+  const db = getDb();
   return db.insert(memberships).values(data).returning();
 }
 
@@ -61,6 +67,7 @@ export async function getUserInOrganization(
   userId: string,
   organizationId: string,
 ) {
+  const db = getDb();
   return db
     .select({
       user: users,

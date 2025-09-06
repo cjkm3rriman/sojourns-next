@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { clerkClient } from '@clerk/nextjs/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { users, organizations, memberships } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
@@ -47,6 +47,7 @@ export async function getUserDisplayData(): Promise<UserWithOrg | null> {
 async function getUserFromDatabase(
   clerkUserId: string,
 ): Promise<UserWithOrg | null> {
+  const db = getDb();
   const result = await db
     .select({
       userId: users.id,

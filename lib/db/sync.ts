@@ -1,4 +1,4 @@
-import { db } from './connection';
+import { getDb } from './connection';
 import { organizations, users, memberships } from './schema';
 import { eq, and } from 'drizzle-orm';
 import { clerkClient } from '@clerk/nextjs/server';
@@ -8,6 +8,7 @@ import { clerkClient } from '@clerk/nextjs/server';
  */
 export async function ensureUserExists(clerkUserId: string): Promise<string> {
   try {
+    const db = getDb();
     // Check if user already exists
     const existingUser = await db
       .select()
@@ -48,6 +49,7 @@ export async function ensureOrganizationExists(
   clerkOrgId: string,
 ): Promise<string> {
   try {
+    const db = getDb();
     // Check if organization already exists
     const existingOrg = await db
       .select()
@@ -89,6 +91,7 @@ export async function ensureMembershipExists(
   role: 'admin' | 'agent' | 'member' = 'member',
 ): Promise<void> {
   try {
+    const db = getDb();
     // Check if membership already exists
     const existingMembership = await db
       .select()
@@ -172,6 +175,7 @@ export async function userExistsInDatabase(
   clerkUserId: string,
 ): Promise<boolean> {
   try {
+    const db = getDb();
     const result = await db
       .select({ id: users.id })
       .from(users)

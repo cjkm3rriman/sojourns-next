@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { headers } from 'next/headers';
 import { Webhook } from 'svix';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { organizations, users, memberships } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
@@ -202,6 +202,7 @@ async function handleWebhook(evt: ClerkEvent) {
 }
 
 async function handleUserUpsert(userData: UserCreatedEvent['data']) {
+  const db = getDb();
   const name =
     `${userData.first_name || ''} ${userData.last_name || ''}`.trim() ||
     'Unknown';
@@ -237,6 +238,7 @@ async function handleUserUpsert(userData: UserCreatedEvent['data']) {
 }
 
 async function handleUserDelete(clerkUserId: string) {
+  const db = getDb();
   // Delete user and related memberships
   const user = await db
     .select()
@@ -260,6 +262,7 @@ async function handleUserDelete(clerkUserId: string) {
 async function handleOrganizationUpsert(
   orgData: OrganizationCreatedEvent['data'],
 ) {
+  const db = getDb();
   const existingOrg = await db
     .select()
     .from(organizations)
@@ -289,6 +292,7 @@ async function handleOrganizationUpsert(
 }
 
 async function handleOrganizationDelete(clerkOrgId: string) {
+  const db = getDb();
   const org = await db
     .select()
     .from(organizations)
@@ -311,6 +315,7 @@ async function handleOrganizationDelete(clerkOrgId: string) {
 async function handleMembershipUpsert(
   membershipData: OrganizationMembershipCreatedEvent['data'],
 ) {
+  const db = getDb();
   // First ensure the organization exists
   await handleOrganizationUpsert(membershipData.organization);
 
@@ -378,6 +383,7 @@ async function handleMembershipUpsert(
 async function handleMembershipDelete(
   membershipData: OrganizationMembershipDeletedEvent['data'],
 ) {
+  const db = getDb();
   // Get the database IDs
   const [user] = await db
     .select()

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { organizations, users, memberships } from '@/lib/db/schema';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { eq, and } from 'drizzle-orm';
 
 export async function POST() {
   try {
+    const db = getDb();
     const { userId } = await auth();
 
     if (!userId) {

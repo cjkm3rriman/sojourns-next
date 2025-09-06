@@ -5,7 +5,7 @@
  * Usage: npx tsx scripts/cleanup-database.ts [--dry-run]
  */
 
-import { db } from '../lib/db';
+import { getDb } from '../lib/db';
 import { users, organizations, memberships } from '../lib/db/schema';
 import { clerkClient } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
@@ -14,7 +14,7 @@ const DRY_RUN = process.argv.includes('--dry-run');
 
 async function cleanupOrphanedUsers() {
   console.log('🔍 Finding orphaned users in database...');
-
+  const db = getDb();
   const dbUsers = await db.select().from(users);
   const orphanedUsers = [];
 
@@ -41,10 +41,10 @@ async function cleanupOrphanedUsers() {
     if (!DRY_RUN) {
       try {
         // Delete memberships first (foreign key constraint)
-        await db.delete(memberships).where(eq(memberships.userId, user.id));
+        await getDb().delete(memberships).where(eq(memberships.userId, user.id));
 
         // Delete user
-        await db.delete(users).where(eq(users.id, user.id));
+        await getDb().delete(users).where(eq(users.id, user.id));
 
         console.log(`✅ Deleted orphaned user: ${user.name}`);
       } catch (error) {
@@ -56,8 +56,8 @@ async function cleanupOrphanedUsers() {
 
 async function cleanupOrphanedOrganizations() {
   console.log('🔍 Finding orphaned organizations in database...');
-
-  const dbOrgs = await db.select().from(organizations);
+  const db2 = getDb();
+  const dbOrgs = await db2.select().from(organizations);
   const orphanedOrgs = [];
 
   for (const dbOrg of dbOrgs) {
@@ -90,12 +90,12 @@ async function cleanupOrphanedOrganizations() {
     if (!DRY_RUN) {
       try {
         // Delete memberships first (foreign key constraint)
-        await db
+        await getDb()
           .delete(memberships)
           .where(eq(memberships.organizationId, org.id));
 
         // Delete organization
-        await db.delete(organizations).where(eq(organizations.id, org.id));
+        await getDb().delete(organizations).where(eq(organizations.id, org.id));
 
         console.log(`✅ Deleted orphaned organization: ${org.name}`);
       } catch (error) {
