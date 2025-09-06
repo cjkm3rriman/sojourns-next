@@ -1,7 +1,11 @@
 import { getDb } from './connection';
 import { organizations, users, memberships } from './schema';
 import { eq, and } from 'drizzle-orm';
-import { clerkClient } from '@clerk/nextjs/server';
+
+async function getClerkClient() {
+  const mod = await import('@clerk/nextjs/server');
+  return mod.clerkClient;
+}
 
 /**
  * Ensures a user exists in our database, creates if needed
@@ -21,6 +25,7 @@ export async function ensureUserExists(clerkUserId: string): Promise<string> {
     }
 
     // User doesn't exist, fetch from Clerk and create
+    const clerkClient = await getClerkClient();
     const clerkUser = await clerkClient.users.getUser(clerkUserId);
 
     const userData = {
@@ -62,6 +67,7 @@ export async function ensureOrganizationExists(
     }
 
     // Organization doesn't exist, fetch from Clerk and create
+    const clerkClient = await getClerkClient();
     const clerkOrg = await clerkClient.organizations.getOrganization({
       organizationId: clerkOrgId,
     });
@@ -135,6 +141,7 @@ export async function syncUserWithOrganizations(
     const userId = await ensureUserExists(clerkUserId);
 
     // Get user's organization memberships from Clerk
+    const clerkClient = await getClerkClient();
     const clerkMemberships =
       await clerkClient.users.getOrganizationMembershipList({
         userId: clerkUserId,

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { organizations, users, memberships } from '@/lib/db/schema';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+// Import Clerk on-demand inside handler to avoid build-time decoding
 import { eq, and } from 'drizzle-orm';
 
 export async function POST() {
   try {
     const db = getDb();
+    const { auth, clerkClient } = await import('@clerk/nextjs/server');
     const { userId } = await auth();
 
     if (!userId) {

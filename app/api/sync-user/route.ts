@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { syncUserWithOrganizations, userExistsInDatabase } from '@/lib/db/sync';
 
 export async function POST() {
   try {
+    const { auth } = await import('@clerk/nextjs/server');
     const { userId } = await auth();
 
     if (!userId) {

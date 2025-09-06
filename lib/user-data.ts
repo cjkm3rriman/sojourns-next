@@ -1,5 +1,3 @@
-import { auth } from '@clerk/nextjs/server';
-import { clerkClient } from '@clerk/nextjs/server';
 import { getDb } from '@/lib/db';
 import { users, organizations, memberships } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -25,6 +23,7 @@ interface UserWithOrg {
  * - Falls back to full Clerk if database missing
  */
 export async function getUserDisplayData(): Promise<UserWithOrg | null> {
+  const { auth } = await import('@clerk/nextjs/server');
   const { userId } = await auth();
   if (!userId) return null;
 
@@ -70,6 +69,7 @@ async function getUserFromDatabase(
 
   // Get fresh avatar URLs from Clerk
   try {
+    const { clerkClient } = await import('@clerk/nextjs/server');
     const [clerkUser, clerkOrg] = await Promise.all([
       clerkClient.users.getUser(clerkUserId),
       row.orgClerkId
@@ -117,6 +117,7 @@ async function getUserFromClerk(
   clerkUserId: string,
 ): Promise<UserWithOrg | null> {
   try {
+    const { clerkClient } = await import('@clerk/nextjs/server');
     const user = await clerkClient.users.getUser(clerkUserId);
     const memberships = await clerkClient.users.getOrganizationMembershipList({
       userId: clerkUserId,
