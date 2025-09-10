@@ -94,8 +94,6 @@ export default function DashboardPage() {
         <div>
           <h1 style={{ textAlign: 'left' }}>Trips</h1>
 
-          
-
           <SignedIn>
             <Link
               href="/trips/create"
@@ -157,9 +155,7 @@ export default function DashboardPage() {
             </div>
           </SignedIn>
           <SignedOut>
-            <p
-              style={{ textAlign: 'left', fontSize: '0.9rem', opacity: 0.8 }}
-            >
+            <p style={{ textAlign: 'left', fontSize: '0.9rem', opacity: 0.8 }}>
               Sign in required
             </p>
           </SignedOut>

@@ -133,7 +133,13 @@ export function UserInfoOptimized() {
           )}
         </div>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
         <div
           style={{
             fontSize: '1rem',
