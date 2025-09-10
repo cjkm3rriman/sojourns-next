@@ -85,16 +85,21 @@ export function UserInfoOptimized() {
   }
 
   return (
-    <div style={{ marginBottom: '1rem' }}>
+    <div
+      style={{
+        marginBottom: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
       {(userData.organization?.imageUrl || userData.imageUrl) && (
         <div
           style={{
-            marginBottom: '0.75rem',
             position: 'relative',
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
             height: '48px',
+            marginRight: '12px',
           }}
         >
           {userData.organization?.imageUrl && (
@@ -128,26 +133,28 @@ export function UserInfoOptimized() {
           )}
         </div>
       )}
-      <p
-        style={{
-          fontSize: '1rem',
-          fontWeight: '600',
-          marginBottom: '0.5rem',
-        }}
-      >
-        {userData.name}
-      </p>
-      {userData.organization && (
-        <p
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div
           style={{
-            fontSize: '0.85rem',
-            opacity: 0.7,
-            marginBottom: '0.5rem',
+            fontSize: '1rem',
+            fontWeight: 600,
+            lineHeight: 1.1,
           }}
         >
-          {userData.organization.name}
-        </p>
-      )}
+          {userData.name}
+        </div>
+        {userData.organization && (
+          <div
+            style={{
+              fontSize: '0.85rem',
+              opacity: 0.7,
+              marginTop: '2px',
+            }}
+          >
+            {userData.organization.name}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -33,8 +33,10 @@ export default function RootLayout({
           margin: 0,
           padding: 0,
           backgroundColor: '#111111',
-          backgroundImage:
-            'linear-gradient(-135deg, #131945 10%, transparent 50%)',
+          backgroundImage: [
+            'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6))',
+            'linear-gradient(to top right, #1d1d2f, #2e2c3a, #4a4e8c)',
+          ].join(', '),
           color: 'white',
           height: '100vh',
           overflow: 'auto',

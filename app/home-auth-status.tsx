@@ -27,7 +27,11 @@ export default function HomeAuthStatus() {
       }}
     >
       <SignedIn>
-        <Link href="/trips" className="auth-button">
+        <Link
+          href="/trips"
+          className="btn btn-golden btn-auto"
+          style={{ textDecoration: 'none' }}
+        >
           Plan More Trips
         </Link>
       </SignedIn>
@@ -35,8 +39,8 @@ export default function HomeAuthStatus() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <Link
             href="/sign-in"
-            className="auth-button"
-            style={{ width: '100%' }}
+            className="btn btn-golden btn-full"
+            style={{ textDecoration: 'none' }}
           >
             Sign In
           </Link>

@@ -8,7 +8,7 @@ export default function CreateTripPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const milesSrc = '/images/miles.png?v=4';
+  const milesSrc = '/images/miles.png?v=7';
 
   const destinations = [
     'Rome',
@@ -104,9 +104,6 @@ export default function CreateTripPage() {
           <h1 style={{ textAlign: 'left', marginBottom: '0.5rem' }}>
             Create New Trip
           </h1>
-          <p style={{ fontSize: '1.1rem', opacity: 0.8, margin: 0 }}>
-            Turn your client&apos;s journey into their story
-          </p>
         </div>
 
         {/* Form Card */}
@@ -121,13 +118,15 @@ export default function CreateTripPage() {
             }}
           >
             <div
+              className="avatar-glow"
               style={{
-                width: '100px',
-                height: '100px',
-                backgroundColor: '#E0A526',
-                borderRadius: '8px',
+                width: '72px',
+                height: '72px',
+                backgroundColor: '#2a2a2a',
+                borderRadius: '50%',
+                border: '1px solid rgba(0, 0, 0, 0.6)',
                 position: 'relative',
-                overflow: 'hidden',
+                overflow: 'visible',
                 flexShrink: 0,
               }}
             >
@@ -135,23 +134,33 @@ export default function CreateTripPage() {
                 src={milesSrc}
                 alt="Miles AI Assistant"
                 fill
-                sizes="100px"
-                style={{ objectFit: 'cover' }}
+                sizes="72px"
+                style={{ objectFit: 'cover', zIndex: 2, borderRadius: '50%' }}
                 priority
+              />
+              {/* Inner highlight ring */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '1px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255, 255, 255, 0.04)',
+                  pointerEvents: 'none',
+                  zIndex: 3,
+                }}
               />
             </div>
             <p
               style={{
-                fontSize: '1rem',
                 lineHeight: '1.4',
                 opacity: 0.8,
                 margin: 0,
               }}
             >
               Enter your client&apos;s name to get started. After creating the
-              trip, <span className="sojourn-text">Miles</span> your
+              trip, <span className="sojourn-text">Miles</span> our
               well-travelled AI assistant will help you quickly build out the
-              trip details & itinerary.
+              trip itinerary.
             </p>
           </div>
 
@@ -232,7 +241,7 @@ export default function CreateTripPage() {
         >
           <button
             onClick={handleSubmit}
-            className="btn btn-primary btn-auto"
+            className="btn btn-golden btn-auto"
             disabled={!clientName.trim() || isSubmitting}
             style={{
               opacity: !clientName.trim() || isSubmitting ? 0.5 : 1,

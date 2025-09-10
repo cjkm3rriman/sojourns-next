@@ -81,8 +81,8 @@ export default function DashboardPage() {
       <main
         style={{
           display: 'grid',
-          gridTemplateColumns: '2.5fr 1fr',
-          gap: '2rem',
+          gridTemplateColumns: '1fr minmax(300px, auto)',
+          gap: '1.5rem',
           padding: '2rem',
           height: '100vh',
           maxWidth: '1200px',
@@ -94,32 +94,18 @@ export default function DashboardPage() {
         <div>
           <h1 style={{ textAlign: 'left' }}>Trips</h1>
 
-          <SignedIn>
-            {userData?.organization && (
-              <p
-                style={{
-                  fontSize: '1.1rem',
-                  opacity: 0.8,
-                  marginBottom: '1.5rem',
-                  marginTop: '-0.5rem',
-                }}
-              >
-                {userData.organization.name}&apos;s Sojourns
-              </p>
-            )}
-          </SignedIn>
+          
 
           <SignedIn>
             <Link
               href="/trips/create"
-              className="btn btn-primary btn-auto"
+              className="btn btn-golden btn-auto"
               style={{
                 marginBottom: '1.5rem',
                 textDecoration: 'none',
               }}
             >
-              <span className="btn-icon">✈️</span>
-              Create New Trip
+              Create New Trip →
             </Link>
 
             <p>
@@ -143,20 +129,21 @@ export default function DashboardPage() {
         </div>
 
         <div
-          className="dashboard-card"
+          className="simple-card"
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'flex-start',
             padding: '1.5rem',
             alignSelf: 'flex-start',
             width: 'fit-content',
-            minWidth: '200px',
+            minWidth: '300px',
+            marginTop: '0.5rem',
           }}
         >
           <SignedIn>
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'left' }}>
               <UserInfo />
 
               <SignOutButton redirectUrl="/">
@@ -171,7 +158,7 @@ export default function DashboardPage() {
           </SignedIn>
           <SignedOut>
             <p
-              style={{ textAlign: 'center', fontSize: '0.9rem', opacity: 0.8 }}
+              style={{ textAlign: 'left', fontSize: '0.9rem', opacity: 0.8 }}
             >
               Sign in required
             </p>

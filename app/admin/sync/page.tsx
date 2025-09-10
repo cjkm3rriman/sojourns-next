@@ -36,14 +36,10 @@ export default function SyncPage() {
         <button
           onClick={handleSync}
           disabled={loading}
+          className="btn btn-golden btn-auto"
           style={{
-            background: 'rgba(25, 35, 110, 0.2)',
-            border: '1px solid rgba(25, 35, 110, 0.5)',
-            borderRadius: '8px',
-            color: 'white',
-            padding: '12px 24px',
-            cursor: loading ? 'not-allowed' : 'pointer',
             marginTop: '16px',
+            cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
           {loading ? 'Syncing...' : 'Sync Clerk Data'}
