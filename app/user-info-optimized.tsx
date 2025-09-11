@@ -86,6 +86,7 @@ export function UserInfoOptimized() {
 
   return (
     <div
+      className="user-info"
       style={{
         marginBottom: '1rem',
         display: 'flex',

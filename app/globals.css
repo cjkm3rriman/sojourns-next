@@ -683,6 +683,11 @@ p {
   border-radius: 12px;
 }
 
+/* User info row standard height */
+.user-info {
+  min-height: 48px;
+}
+
 .avatar-glow::before,
 .avatar-glow::after {
   content: '';
