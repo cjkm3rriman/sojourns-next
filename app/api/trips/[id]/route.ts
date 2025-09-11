@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { trips, users, memberships } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@clerk/nextjs/server';
+import type { auth as AuthType } from '@clerk/nextjs/server';
 
 export async function GET(
   request: NextRequest,
@@ -10,6 +10,7 @@ export async function GET(
 ) {
   try {
     // Get authenticated user
+    const { auth } = await import('@clerk/nextjs/server');
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
