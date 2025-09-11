@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { documents, trips, users, memberships } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@clerk/nextjs/server';
+import type { auth as AuthType } from '@clerk/nextjs/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2Client, R2_BUCKET } from '@/lib/r2';
 import { nanoid } from 'nanoid';
@@ -43,6 +43,7 @@ export async function POST(
     }
 
     // Get authenticated user
+    const { auth } = await import('@clerk/nextjs/server');
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -178,6 +179,7 @@ export async function GET(
 ) {
   try {
     // Get authenticated user
+    const { auth } = await import('@clerk/nextjs/server');
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
