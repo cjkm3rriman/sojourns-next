@@ -30,15 +30,39 @@ interface Document {
   createdAt: string;
 }
 
+interface TripItem {
+  id: string;
+  type: string;
+  title: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  timezone?: string;
+  location?: string;
+  originLocation?: string;
+  destinationLocation?: string;
+  cost?: string;
+  status: string;
+  sortOrder: number;
+  createdAt: string;
+  placeName?: string;
+  placeType?: string;
+  placeAddress?: string;
+}
+
 export default function TripDetailPage() {
   const params = useParams();
   const tripId = params.id as string;
   const [trip, setTrip] = useState<Trip | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [items, setItems] = useState<TripItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [documentsLoading, setDocumentsLoading] = useState(true);
+  const [itemsLoading, setItemsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [togglingIgnore, setTogglingIgnore] = useState<string | null>(null);
   const milesSrc = '/images/miles.png?v=7';
 
   useEffect(() => {
@@ -71,11 +95,68 @@ export default function TripDetailPage() {
       }
     }
 
+    async function fetchItems() {
+      try {
+        const response = await fetch(`/api/trips/${tripId}/items`);
+        if (response.ok) {
+          const data = await response.json();
+          setItems(data.items || []);
+        }
+      } catch (err) {
+        console.error('Error fetching items:', err);
+      } finally {
+        setItemsLoading(false);
+      }
+    }
+
     if (tripId) {
       fetchTrip();
       fetchDocuments();
+      fetchItems();
     }
   }, [tripId]);
+
+  const toggleIgnoreDocument = async (
+    docId: string,
+    currentlyIgnored: boolean,
+  ) => {
+    setTogglingIgnore(docId);
+    try {
+      const response = await fetch(
+        `/api/trips/${tripId}/documents/${docId}/ignore`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ignored: !currentlyIgnored }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update document');
+      }
+
+      const data = await response.json();
+
+      // Update the documents state
+      setDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === docId ? { ...doc, status: data.document.status } : doc,
+        ),
+      );
+    } catch (error) {
+      console.error('Error toggling ignore status:', error);
+      alert(
+        error instanceof Error
+          ? `Failed to ${currentlyIgnored ? 'unignore' : 'ignore'} document: ${error.message}`
+          : 'Failed to update document',
+      );
+    } finally {
+      setTogglingIgnore(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -300,8 +381,12 @@ export default function TripDetailPage() {
                           padding: '0.5rem 0.75rem',
                           border: '1px solid rgba(255, 255, 255, 0.1)',
                           borderRadius: '6px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                          backgroundColor:
+                            doc.status === 'ignored'
+                              ? 'rgba(128, 128, 128, 0.05)'
+                              : 'rgba(255, 255, 255, 0.02)',
                           fontSize: '0.85rem',
+                          opacity: doc.status === 'ignored' ? 0.7 : 1,
                         }}
                       >
                         <div
@@ -309,9 +394,19 @@ export default function TripDetailPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
+                            flex: 1,
                           }}
                         >
-                          <span>{doc.originalName}</span>
+                          <span
+                            style={{
+                              textDecoration:
+                                doc.status === 'ignored'
+                                  ? 'line-through'
+                                  : 'none',
+                            }}
+                          >
+                            {doc.originalName}
+                          </span>
                           <span
                             style={{
                               fontSize: '0.75rem',
@@ -324,16 +419,59 @@ export default function TripDetailPage() {
                                     ? 'rgba(255, 165, 0, 0.2)'
                                     : doc.status === 'processed'
                                       ? 'rgba(0, 255, 0, 0.2)'
-                                      : 'rgba(255, 0, 0, 0.2)',
+                                      : doc.status === 'ignored'
+                                        ? 'rgba(128, 128, 128, 0.2)'
+                                        : 'rgba(255, 0, 0, 0.2)',
                               textTransform: 'capitalize',
                             }}
                           >
-                            {doc.status}
+                            {doc.status === 'ignored'
+                              ? '🚫 ignored'
+                              : doc.status}
                           </span>
                         </div>
-                        <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
-                          {new Date(doc.createdAt).toLocaleDateString()}
-                        </span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                          }}
+                        >
+                          <button
+                            style={{
+                              fontSize: '0.7rem',
+                              padding: '0.25rem 0.5rem',
+                              border: 'none',
+                              borderRadius: '4px',
+                              backgroundColor:
+                                doc.status === 'ignored'
+                                  ? 'rgba(0, 150, 0, 0.2)'
+                                  : 'rgba(200, 100, 100, 0.2)',
+                              color: 'rgba(255, 255, 255, 0.8)',
+                              cursor:
+                                togglingIgnore === doc.id
+                                  ? 'not-allowed'
+                                  : 'pointer',
+                              opacity: togglingIgnore === doc.id ? 0.5 : 1,
+                            }}
+                            disabled={togglingIgnore === doc.id}
+                            onClick={() =>
+                              toggleIgnoreDocument(
+                                doc.id,
+                                doc.status === 'ignored',
+                              )
+                            }
+                          >
+                            {togglingIgnore === doc.id
+                              ? '...'
+                              : doc.status === 'ignored'
+                                ? '↩️ Include'
+                                : '🚫 Ignore'}
+                          </button>
+                          <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
+                            {new Date(doc.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -412,6 +550,77 @@ export default function TripDetailPage() {
                 </label>
               </div>
 
+              {/* Analyze Documents Button */}
+              {documents.some((doc) => doc.mimeType === 'application/pdf') && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <button
+                    className="btn btn-golden btn-auto"
+                    type="button"
+                    disabled={analyzing}
+                    onClick={async () => {
+                      setAnalyzing(true);
+                      try {
+                        const response = await fetch(
+                          `/api/trips/${tripId}/analyze`,
+                          {
+                            method: 'POST',
+                          },
+                        );
+
+                        if (!response.ok) {
+                          const errorData = await response.json();
+                          const userMessage =
+                            errorData.userMessage ||
+                            errorData.details ||
+                            errorData.error ||
+                            'Analysis failed';
+                          throw new Error(userMessage);
+                        }
+
+                        const data = await response.json();
+                        console.log('Analysis successful:', data);
+
+                        // Show success message
+                        alert(
+                          `Analysis complete! Created ${data.createdItems} items and ${data.createdPlaces} places from ${data.analyzedDocuments.length} documents.`,
+                        );
+
+                        // Optionally refresh the page to show new items
+                        // window.location.reload();
+                      } catch (error) {
+                        console.error('Analysis error:', error);
+
+                        const errorMessage =
+                          error instanceof Error
+                            ? error.message
+                            : 'Analysis failed';
+
+                        // Show more helpful error messages
+                        if (
+                          errorMessage.includes('quota exceeded') ||
+                          errorMessage.includes('credits') ||
+                          errorMessage.includes('Sojourns forgot')
+                        ) {
+                          alert(
+                            '🤖💳 Whoops!\n\n' +
+                              'Looks like Sojourns forgot to top up their AI credits. Hold tight while we sort this out!\n\n' +
+                              'Our travel planning bot will be back to analyzing your documents soon! ✈️',
+                          );
+                        } else {
+                          alert(`Analysis failed: ${errorMessage}`);
+                        }
+                      } finally {
+                        setAnalyzing(false);
+                      }
+                    }}
+                  >
+                    {analyzing
+                      ? 'Analyzing PDFs...'
+                      : '🤖 Analyze PDFs with AI'}
+                  </button>
+                </div>
+              )}
+
               <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>
                 Trip Details
               </h2>
@@ -489,7 +698,172 @@ export default function TripDetailPage() {
             </div>
           </div>
 
-          <div></div>
+          {/* Right Column - Trip Items */}
+          <div>
+            {itemsLoading ? (
+              <div
+                className="dashboard-card"
+                style={{ padding: '2rem', textAlign: 'center' }}
+              >
+                Loading items...
+              </div>
+            ) : (
+              <div>
+                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.4rem' }}>
+                  Trip Itinerary
+                </h2>
+
+                {items.length === 0 ? (
+                  <div
+                    className="dashboard-card"
+                    style={{
+                      padding: '2rem',
+                      textAlign: 'center',
+                      opacity: 0.7,
+                    }}
+                  >
+                    <p>No items yet</p>
+                    <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
+                      Upload and analyze documents to build your itinerary
+                    </p>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1rem',
+                    }}
+                  >
+                    {items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="dashboard-card"
+                        style={{
+                          padding: '1.5rem',
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        }}
+                      >
+                        {/* Item Type Icon and Title */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            marginBottom: '0.75rem',
+                          }}
+                        >
+                          <span style={{ fontSize: '1.2em' }}>
+                            {item.type === 'flight'
+                              ? '✈️'
+                              : item.type === 'hotel'
+                                ? '🏨'
+                                : item.type === 'restaurant'
+                                  ? '🍽️'
+                                  : item.type === 'transfer'
+                                    ? '🚗'
+                                    : '🎭'}
+                          </span>
+                          <h3
+                            style={{
+                              margin: 0,
+                              fontSize: '1.1rem',
+                              fontWeight: '600',
+                            }}
+                          >
+                            {item.title}
+                          </h3>
+                        </div>
+
+                        {/* Item Details */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          {item.description && (
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '0.9rem',
+                                opacity: 0.8,
+                                lineHeight: '1.4',
+                              }}
+                            >
+                              {item.description}
+                            </p>
+                          )}
+
+                          {/* Show origin/destination for travel items */}
+                          {(item.type === 'flight' ||
+                            item.type === 'transfer') &&
+                          (item.originLocation || item.destinationLocation) ? (
+                            <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                              🛤️ {item.originLocation || '?'} →{' '}
+                              {item.destinationLocation || item.location || '?'}
+                            </div>
+                          ) : (
+                            item.location && (
+                              <div
+                                style={{ fontSize: '0.85rem', opacity: 0.7 }}
+                              >
+                                📍 {item.location}
+                              </div>
+                            )
+                          )}
+
+                          {(item.startDate || item.endDate) && (
+                            <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                              🕒{' '}
+                              {item.startDate
+                                ? new Date(item.startDate).toLocaleString()
+                                : 'TBD'}
+                              {item.endDate &&
+                                item.startDate !== item.endDate &&
+                                ` - ${new Date(item.endDate).toLocaleString()}`}
+                            </div>
+                          )}
+
+                          {item.cost && (
+                            <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                              💰 {item.cost}
+                            </div>
+                          )}
+
+                          {item.placeName && (
+                            <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                              🏢 {item.placeName}
+                              {item.placeAddress && ` - ${item.placeAddress}`}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Status Badge */}
+                        <div style={{ marginTop: '0.75rem' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '12px',
+                              backgroundColor:
+                                item.status === 'confirmed'
+                                  ? 'rgba(0, 255, 0, 0.2)'
+                                  : 'rgba(255, 165, 0, 0.2)',
+                              textTransform: 'capitalize',
+                            }}
+                          >
+                            {item.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

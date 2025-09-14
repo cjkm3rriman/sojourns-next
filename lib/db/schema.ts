@@ -160,6 +160,10 @@ export const items = pgTable('items', {
   // Location (almost all items have a location)
   location: text('location'), // "JFK Airport", "Via Sistina 69, Rome", "Colosseum"
 
+  // Origin/Destination for travel items
+  originLocation: text('origin_location'), // For flights, transfers: departure point
+  destinationLocation: text('destination_location'), // For flights, transfers: arrival point
+
   // Business
   cost: text('cost'), // Flexible: "$500", "€200 per person", "Included"
   status: text('status').default('pending'), // "confirmed", "pending", "cancelled"
@@ -193,9 +197,12 @@ export const documents = pgTable('documents', {
   r2Url: text('r2_url'), // Public URL if needed
 
   // Processing status
-  status: text('status').default('uploaded').notNull(), // uploaded, processing, processed, failed
+  status: text('status').default('uploaded').notNull(), // uploaded, processing, processed, failed, ignored
   extractedData: text('extracted_data'), // JSON from AI processing
   errorMessage: text('error_message'), // If processing failed
+
+  // OpenAI integration
+  openaiFileId: text('openai_file_id'), // OpenAI file reference for reuse
 
   // Upload context
   uploadedBy: uuid('uploaded_by')

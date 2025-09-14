@@ -8,6 +8,13 @@
       "when": 1757553197695,
       "tag": "0000_strong_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1757812056701,
+      "tag": "0001_thick_thena",
+      "breakpoints": true
     }
   ]
 }

@@ -74,6 +74,35 @@
 
 ---
 
+## 📋 Technical Debt & Migration Notes
+
+### OpenAI Assistants API Migration (2026)
+
+- **Current Status:** Using Assistants API v2 with File Search (fully supported)
+- **Future Migration:** Entire Assistants API will be deprecated in early/mid 2026
+- **Action Required:** Migrate to OpenAI's Responses API before deprecation
+- **Timeline:** Plan migration in 2025, complete before 2026 sunset
+- **Impact:** File search functionality will continue in Responses API with feature parity
+
+### PDF Analysis System Improvements (Next Session)
+
+- **Optimize Data Structure:** Continue refining items and places schema and values
+  - Review field usage and optimize for travel agent workflows
+  - Consider adding more structured data fields (confirmation numbers, vendor info, etc.)
+  - Evaluate place categorization effectiveness
+- **Improve AI Accuracy:** Enhanced prompt engineering and validation
+  - **CRITICAL:** Current prompt changes improved transfer detection but reduced hotel/restaurant accuracy
+  - Need to rebalance prompt to maintain transfer detection while improving accommodation/dining extraction
+  - Fine-tune prompts based on real-world document analysis results
+  - Add better context understanding for complex travel documents
+  - Implement validation rules to catch common AI extraction errors
+- **User Notifications:** Add basic notification system for AI processing completion
+  - Real-time status updates during PDF analysis
+  - Success/failure notifications with actionable messages
+  - Progress indicators for multi-document processing
+
+---
+
 ## ⏱️ Suggested Timeline (Lean MVP Track)
 
 - **Week 1–2:** Auth + DB + admin CRUD.
