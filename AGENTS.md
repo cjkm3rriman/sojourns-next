@@ -25,6 +25,7 @@ This repository favors simple Makefile wrappers. Examples:
 - Indentation: 2 spaces for web code; 4 spaces for Python.
 - Naming: snake_case for Python modules; kebab-case for dirs; camelCase for functions/vars; PascalCase for classes/types.
 - Structure: Keep files focused; prefer small, pure functions and cohesive modules.
+- CSS Approach: **Prefer CSS classes over inline styles**. Use semantic class names that describe content/function (e.g., `flight-title`, `flight-departure`). Move all styling to CSS files for better maintainability, performance, and separation of concerns. Only use inline styles for dynamic properties that can't be predefined.
 
 ## Testing Guidelines
 

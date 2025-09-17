@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { items, trips, users, memberships, places } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 export async function GET(
   request: NextRequest,
@@ -60,6 +61,10 @@ export async function GET(
       );
     }
 
+    // Create aliases for the different place joins
+    const originPlace = alias(places, 'originPlace');
+    const destinationPlace = alias(places, 'destinationPlace');
+
     // Fetch items for this trip with optional place information
     const tripItems = await db
       .select({
@@ -69,21 +74,50 @@ export async function GET(
         description: items.description,
         startDate: items.startDate,
         endDate: items.endDate,
-        timezone: items.timezone,
-        location: items.location,
-        originLocation: items.originLocation,
-        destinationLocation: items.destinationLocation,
+        originLocationSpecific: items.originLocationSpecific,
+        destinationLocationSpecific: items.destinationLocationSpecific,
         cost: items.cost,
         status: items.status,
         sortOrder: items.sortOrder,
         createdAt: items.createdAt,
-        // Place information if linked
-        placeName: places.name,
-        placeType: places.type,
-        placeAddress: places.address,
+        phoneNumber: items.phoneNumber,
+        confirmationNumber: items.confirmationNumber,
+        notes: items.notes,
+        data: items.data,
+        // Origin place information (serves as main place for hotels/restaurants/activities)
+        placeName: originPlace.name,
+        placeShortName: originPlace.shortName,
+        placeType: originPlace.type,
+        placeAddress: originPlace.address,
+        placeCity: originPlace.city,
+        placeState: originPlace.state,
+        placeCountry: originPlace.country,
+        placePostalCode: originPlace.postalCode,
+        placeTimezone: originPlace.timezone,
+        originPlaceName: originPlace.name,
+        originPlaceShortName: originPlace.shortName,
+        originPlaceAddress: originPlace.address,
+        originPlaceCity: originPlace.city,
+        originPlaceState: originPlace.state,
+        originPlaceCountry: originPlace.country,
+        originPlacePostalCode: originPlace.postalCode,
+        originPlaceTimezone: originPlace.timezone,
+        // Destination place information
+        destinationPlaceName: destinationPlace.name,
+        destinationPlaceShortName: destinationPlace.shortName,
+        destinationPlaceAddress: destinationPlace.address,
+        destinationPlaceCity: destinationPlace.city,
+        destinationPlaceState: destinationPlace.state,
+        destinationPlaceCountry: destinationPlace.country,
+        destinationPlacePostalCode: destinationPlace.postalCode,
+        destinationPlaceTimezone: destinationPlace.timezone,
       })
       .from(items)
-      .leftJoin(places, eq(items.placeId, places.id))
+      .leftJoin(originPlace, eq(items.originPlaceId, originPlace.id))
+      .leftJoin(
+        destinationPlace,
+        eq(items.destinationPlaceId, destinationPlace.id),
+      )
       .where(eq(items.tripId, tripId))
       .orderBy(items.startDate, items.sortOrder, items.createdAt);
 

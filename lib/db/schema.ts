@@ -5,6 +5,8 @@ import {
   uuid,
   pgEnum,
   integer,
+  boolean,
+  real,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -33,6 +35,7 @@ export const placeTypeEnum = pgEnum('place_type', [
   'restaurant',
   'attraction',
   'venue',
+  'airport',
 ]);
 
 // Organizations table - represents travel agencies
@@ -111,11 +114,20 @@ export const places = pgTable('places', {
 
   // Basic info
   name: text('name').notNull(),
+  shortName: text('short_name'), // Short display name (e.g., "JFK", "Hotel Hassler", "Central Park")
   type: placeTypeEnum('type').notNull(),
   description: text('description'),
 
   // Contact & location
   address: text('address'),
+  city: text('city'),
+  cityDisplay: text('city_display'), // Formatted city name for display (e.g., "New York, NY", "Rome, Italy")
+  state: text('state'),
+  country: text('country'),
+  postalCode: text('postal_code'),
+  lat: real('lat'), // Latitude coordinate
+  lng: real('lng'), // Longitude coordinate
+  timezone: text('timezone'), // e.g., "America/New_York", "Europe/Rome"
   phone: text('phone'),
   email: text('email'),
   website: text('website'),
@@ -144,29 +156,36 @@ export const items = pgTable('items', {
     .notNull(),
   type: itemTypeEnum('type').notNull(),
 
-  // Optional reference to a place (for hotels, restaurants, attractions)
-  placeId: uuid('place_id').references(() => places.id), // NULL for flights/transfers
-
   // Standard display fields
   title: text('title').notNull(), // "Delta Flight to Rome", "Hotel Hassler", "Dinner at Osteria"
   description: text('description'), // Longer description/notes
   icon: text('icon'), // ✈️ 🏨 🚗 🍽️ 🎭
 
-  // Timing (most items have some time component)
-  startDate: timestamp('start_date', { withTimezone: true }), // Flight departure, hotel check-in, activity start
-  endDate: timestamp('end_date', { withTimezone: true }), // Flight arrival, hotel check-out, activity end
-  timezone: text('timezone'), // e.g., "Europe/Rome", "America/New_York"
+  // Timing (most items have some time component) - local times without timezone
+  startDate: timestamp('start_date', { withTimezone: false }), // Flight departure, hotel check-in, activity start
+  endDate: timestamp('end_date', { withTimezone: false }), // Flight arrival, hotel check-out, activity end
 
-  // Location (almost all items have a location)
-  location: text('location'), // "JFK Airport", "Via Sistina 69, Rome", "Colosseum"
+  // Location references to places
+  originPlaceId: uuid('origin_place_id').references(() => places.id), // Origin place reference
+  destinationPlaceId: uuid('destination_place_id').references(() => places.id), // Destination place reference
 
-  // Origin/Destination for travel items
-  originLocation: text('origin_location'), // For flights, transfers: departure point
-  destinationLocation: text('destination_location'), // For flights, transfers: arrival point
+  // Specific location details within places
+  originLocationSpecific: text('origin_location_specific'), // e.g., "Terminal 3", "Gate A12", "Hotel Lobby"
+  destinationLocationSpecific: text('destination_location_specific'), // e.g., "Baggage Claim", "Arrivals Hall"
 
   // Business
   cost: text('cost'), // Flexible: "$500", "€200 per person", "Included"
   status: text('status').default('pending'), // "confirmed", "pending", "cancelled"
+
+  // Contact information
+  phoneNumber: text('phone_number'), // International format with country code (e.g., "+1234567890")
+  confirmationNumber: text('confirmation_number'), // Flight confirmation, hotel booking reference, etc.
+
+  // Agent notes
+  notes: text('notes'), // Agent notes and comments for this item
+
+  // Client booking status
+  clientBooked: boolean('client_booked').default(false).notNull(), // Whether client has booked this item
 
   // Organization
   sortOrder: integer('sort_order').default(0), // For day-by-day ordering
@@ -257,8 +276,12 @@ export const itemsRelations = relations(items, ({ one }) => ({
     fields: [items.tripId],
     references: [trips.id],
   }),
-  place: one(places, {
-    fields: [items.placeId],
+  originPlace: one(places, {
+    fields: [items.originPlaceId],
+    references: [places.id],
+  }),
+  destinationPlace: one(places, {
+    fields: [items.destinationPlaceId],
     references: [places.id],
   }),
 }));

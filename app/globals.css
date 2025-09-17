@@ -187,6 +187,200 @@ p {
   font-size: 0.9rem; /* slightly smaller default paragraphs */
 }
 
+.monospace {
+  font-family:
+    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
+    monospace;
+}
+
+.item-card {
+  border: none;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  background: none;
+  padding: 0 1.5rem;
+  margin: 1.5rem 0;
+  box-sizing: border-box;
+}
+
+/* Flight-specific item card layout */
+.flight-item-card {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: flex;
+  gap: 1rem;
+  box-sizing: border-box;
+}
+
+.flight-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.flight-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.flight-timeline {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(to bottom, #e8c998, #3c2b18);
+  border-radius: 1px;
+  position: relative;
+}
+
+.flight-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: #e8c998;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.flight-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Flight Card Styles */
+.flight-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.flight-date {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
+.flight-date > div {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.flight-number {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.flight-number span {
+  font-family:
+    'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+}
+
+.flight-times svg,
+.flight-departure svg,
+.flight-arrival svg,
+.flight-class svg,
+.flight-passengers svg,
+.flight-contact svg,
+.flight-confirmation svg,
+.flight-notes svg {
+  opacity: 0.4;
+  color: white;
+}
+
+.flight-number img {
+  opacity: 1;
+}
+
+.flight-route {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.flight-times {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.flight-departure,
+.flight-arrival {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.flight-departure span,
+.flight-arrival span,
+.flight-times span {
+  opacity: 0.8;
+}
+
+.flight-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.flight-service-info {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.flight-class,
+.flight-passengers,
+.flight-contact,
+.flight-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.flight-notes {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.flight-cost {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .dashboard-card {
   background:
     /* Dark glass fill */
