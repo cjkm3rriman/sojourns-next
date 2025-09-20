@@ -138,7 +138,7 @@ export default function CreateTripPage() {
         >
           <div>
             {/* Form Card */}
-            <div className="dashboard-card" style={{ padding: '2rem' }}>
+            <div className="simple-card" style={{ padding: '2rem' }}>
               <div
                 style={{
                   display: 'flex',

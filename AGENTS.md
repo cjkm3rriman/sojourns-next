@@ -47,6 +47,58 @@ This repository favors simple Makefile wrappers. Examples:
 - Pin dependencies and run security checks (e.g., make audit) when available.
 - Review third-party licenses for compliance before introducing new deps.
 
+## Database Migration Guidelines
+
+### Current Setup
+
+- Using Drizzle ORM with PostgreSQL (Neon)
+- Schema defined in `lib/db/schema.ts`
+- Migrations in `lib/db/migrations/`
+- Config in `drizzle.config.ts`
+
+### Development Workflow
+
+**For Development (Recommended):**
+
+```bash
+# Make schema changes in lib/db/schema.ts
+# Then apply directly to database:
+npm run db:push
+```
+
+### Migration Conflict Resolution
+
+**Root Causes:**
+
+- Manual SQL migrations mixed with generated ones
+- Database state doesn't match drizzle metadata
+- Journal (`_journal.json`) out of sync with actual migrations
+
+**Resolution Strategies:**
+
+1. **Continue using `db:push`** (recommended for development)
+   - Simple, immediate, no conflicts
+   - Good for rapid iteration
+
+2. **Reset migration state** (for production setup):
+
+   ```bash
+   # Backup data first
+   rm -rf lib/db/migrations/00*
+   rm -rf lib/db/migrations/meta/00*
+   echo '{"version": "7", "dialect": "postgresql", "entries": []}' > lib/db/migrations/meta/_journal.json
+   npm run db:generate -- --name="baseline"
+   ```
+
+3. **Never mix methods**: Don't use both `db:push` and migrations in same environment
+
+### Available Commands
+
+- `npm run db:generate` - Generate new migration
+- `npm run db:migrate` - Apply pending migrations
+- `npm run db:push` - Push schema changes directly (development)
+- `npm run db:studio` - Open Drizzle Studio
+
 ## Coding Proficiency
 
 - Computer Science degree, but rusty programmer who has been doing Product for the past 15 years. Low familiarity with react and next. Explaing what you are doing more than you would typically. Keep things simple unless complexity needed to achieve goals.

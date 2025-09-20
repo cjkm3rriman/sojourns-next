@@ -2,6 +2,8 @@
 import NextDynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Sunrise, Search } from 'react-feather';
 import { useAutoSync } from '@/lib/hooks/useAutoSync';
 
 export const dynamic = 'force-dynamic';
@@ -66,6 +68,7 @@ export default function DashboardPage() {
   const [userData, setUserData] = useState<UserDisplayData | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [tripsLoading, setTripsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function fetchUserData() {
@@ -98,6 +101,14 @@ export default function DashboardPage() {
     fetchTrips();
   }, []);
 
+  // Filter trips based on search query
+  const filteredTrips = trips.filter((trip) => {
+    const query = searchQuery.toLowerCase();
+    const destination = (trip.destination || '').toLowerCase();
+    const clientName = trip.clientName.toLowerCase();
+    return destination.includes(query) || clientName.includes(query);
+  });
+
   return (
     <div
       style={{
@@ -120,36 +131,122 @@ export default function DashboardPage() {
           overflow: 'auto',
         }}
       >
-        <h1 style={{ textAlign: 'left', marginBottom: '1.5rem' }}>Trips</h1>
-
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr minmax(300px, auto)',
+            gridTemplateColumns: 'minmax(300px, auto) 1fr',
             gap: '1.5rem',
             flex: 1,
           }}
         >
-          <div>
+          <div
+            className="simple-card"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-start',
+              padding: '1.5rem',
+              alignSelf: 'flex-start',
+              width: 'fit-content',
+              minWidth: '300px',
+              minHeight: '400px',
+            }}
+          >
             <SignedIn>
-              <Link
-                href="/trip/create"
-                className="btn btn-golden btn-auto"
+              <div style={{ textAlign: 'left' }}>
+                <UserInfo />
+
+                <SignOutButton redirectUrl="/">
+                  <span
+                    style={{
+                      marginTop: '1rem',
+                      display: 'block',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      fontSize: '0.9rem',
+                      opacity: 0.7,
+                    }}
+                  >
+                    Sign Out
+                  </span>
+                </SignOutButton>
+              </div>
+            </SignedIn>
+            <SignedOut>
+              <p
+                style={{ textAlign: 'left', fontSize: '0.9rem', opacity: 0.8 }}
+              >
+                Sign in required
+              </p>
+            </SignedOut>
+          </div>
+
+          <div>
+            <h1 style={{ textAlign: 'left', marginBottom: '1rem' }}>Trips</h1>
+            <SignedIn>
+              <div
                 style={{
+                  display: 'flex',
+                  gap: '1rem',
                   marginBottom: '1.5rem',
-                  textDecoration: 'none',
+                  alignItems: 'center',
                 }}
               >
-                Create New Trip →
-              </Link>
-
+                <div
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    minWidth: '250px',
+                  }}
+                >
+                  <Search
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      left: '0.75rem',
+                      opacity: 0.6,
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search trips..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      padding: '0.75rem 1rem 0.75rem 2.5rem',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      color: 'inherit',
+                      fontSize: '0.9rem',
+                      width: '100%',
+                      height: '42px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+                <Link
+                  href="/trip/create"
+                  className="btn btn-golden"
+                  style={{
+                    textDecoration: 'none',
+                    width: 'fit-content',
+                  }}
+                >
+                  <Sunrise size={16} /> Create New Trip
+                </Link>
+              </div>
+            </SignedIn>
+            <SignedIn>
               {tripsLoading ? (
                 <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
                   Loading trips...
                 </p>
-              ) : trips.length > 0 ? (
+              ) : filteredTrips.length > 0 ? (
                 <div>
-                  <h3 style={{ marginBottom: '1rem' }}>Recent Trips</h3>
                   <div
                     style={{
                       display: 'flex',
@@ -157,7 +254,7 @@ export default function DashboardPage() {
                       gap: '0.75rem',
                     }}
                   >
-                    {trips.map((trip) => (
+                    {filteredTrips.map((trip) => (
                       <Link
                         key={trip.id}
                         href={`/trip/${trip.id}`}
@@ -166,61 +263,103 @@ export default function DashboardPage() {
                           color: 'inherit',
                         }}
                       >
-                        <div
-                          style={{
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              marginBottom: '0.5rem',
-                            }}
-                          >
-                            {trip.icon && <span>{trip.icon}</span>}
-                            <strong style={{ fontSize: '0.9rem' }}>
-                              {trip.clientName}
-                            </strong>
-                          </div>
-                          {trip.destination && (
-                            <div
-                              style={{
-                                fontSize: '0.8rem',
-                                opacity: 0.7,
-                                marginBottom: '0.25rem',
-                              }}
-                            >
-                              {trip.destination}
-                            </div>
+                        <div className="trips-card">
+                          {trip.icon && (
+                            <Image
+                              src={`/images/icons/trip/${trip.icon}.png`}
+                              alt="Trip icon"
+                              width={72}
+                              height={72}
+                              style={{ objectFit: 'contain', flexShrink: 0 }}
+                            />
                           )}
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontSize: '0.75rem',
-                                padding: '0.125rem 0.375rem',
-                                borderRadius: '4px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                textTransform: 'capitalize',
-                              }}
-                            >
-                              {trip.status}
-                            </span>
-                            <button className="btn btn-secondary btn-sm btn-auto">
-                              View Trip
-                            </button>
+                          <div className="trips-content">
+                            <div className="trips-title">
+                              <span>
+                                {trip.destination || 'Somewhere Delightful'}
+                              </span>
+                              <span className="trips-client">
+                                <span>•</span> {trip.clientName}
+                              </span>
+                            </div>
+                            <div className="trips-date">
+                              <span className="trips-status">
+                                {trip.status}
+                              </span>
+                              <span>
+                                {(() => {
+                                  if (!trip.startDate)
+                                    return 'Trip dates to be determined';
+
+                                  const startDate = new Date(trip.startDate);
+                                  const endDate = trip.endDate
+                                    ? new Date(trip.endDate)
+                                    : null;
+
+                                  const formatDate = (
+                                    date: Date,
+                                    includeDay = false,
+                                  ) => {
+                                    const options: Intl.DateTimeFormatOptions =
+                                      {
+                                        month: 'long',
+                                        day: 'numeric',
+                                      };
+                                    if (includeDay) {
+                                      options.weekday = 'short';
+                                    }
+
+                                    const formatted = date.toLocaleDateString(
+                                      'en-US',
+                                      options,
+                                    );
+                                    // Add ordinal suffix to day
+                                    return formatted.replace(
+                                      /(\d+)/,
+                                      (match, day) => {
+                                        const dayNum = parseInt(day);
+                                        const suffix =
+                                          dayNum % 10 === 1 && dayNum !== 11
+                                            ? 'st'
+                                            : dayNum % 10 === 2 && dayNum !== 12
+                                              ? 'nd'
+                                              : dayNum % 10 === 3 &&
+                                                  dayNum !== 13
+                                                ? 'rd'
+                                                : 'th';
+                                        return `${day}${suffix}`;
+                                      },
+                                    );
+                                  };
+
+                                  const startFormatted = formatDate(
+                                    startDate,
+                                    false,
+                                  );
+
+                                  if (!endDate) return startFormatted;
+
+                                  // If same month, just show day for end date
+                                  const endFormatted =
+                                    startDate.getMonth() === endDate.getMonth()
+                                      ? formatDate(endDate).replace(/\w+ /, '') // Remove month
+                                      : formatDate(endDate);
+
+                                  return `${startFormatted} → ${endFormatted}`;
+                                })()}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </Link>
                     ))}
                   </div>
+                </div>
+              ) : trips.length > 0 ? (
+                <div>
+                  <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
+                    No trips match your search &quot;{searchQuery}&quot;.
+                  </p>
                 </div>
               ) : (
                 <div>
@@ -259,42 +398,6 @@ export default function DashboardPage() {
             </SignedIn>
             <SignedOut>
               <p>Please sign in to access your dashboard.</p>
-            </SignedOut>
-          </div>
-
-          <div
-            className="simple-card"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start',
-              padding: '1.5rem',
-              alignSelf: 'flex-start',
-              width: 'fit-content',
-              minWidth: '300px',
-            }}
-          >
-            <SignedIn>
-              <div style={{ textAlign: 'left' }}>
-                <UserInfo />
-
-                <SignOutButton redirectUrl="/">
-                  <button
-                    className="btn btn-secondary btn-sm btn-auto"
-                    style={{ marginTop: '1rem' }}
-                  >
-                    Sign Out
-                  </button>
-                </SignOutButton>
-              </div>
-            </SignedIn>
-            <SignedOut>
-              <p
-                style={{ textAlign: 'left', fontSize: '0.9rem', opacity: 0.8 }}
-              >
-                Sign in required
-              </p>
             </SignedOut>
           </div>
         </div>

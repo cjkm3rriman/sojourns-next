@@ -19,8 +19,7 @@ export const membershipRoleEnum = pgEnum('membership_role', [
 ]);
 export const tripStatusEnum = pgEnum('trip_status', [
   'draft',
-  'planning',
-  'confirmed',
+  'published',
   'cancelled',
 ]);
 export const itemTypeEnum = pgEnum('item_type', [
@@ -44,6 +43,7 @@ export const organizations = pgTable('organizations', {
   clerkOrgId: text('clerk_org_id').unique().notNull(),
   name: text('name').notNull(),
   slug: text('slug').unique().notNull(),
+  flightsPhoneNumber: text('flights_phone_number'), // Flight desk phone number for the organization
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -95,6 +95,8 @@ export const trips = pgTable('trips', {
   startDate: timestamp('start_date'),
   endDate: timestamp('end_date'),
   status: tripStatusEnum('status').default('draft').notNull(),
+  groupSize: integer('group_size'),
+  flightsPhoneNumber: text('flights_phone_number'), // International format phone number
   notes: text('notes'),
 
   // Client access
