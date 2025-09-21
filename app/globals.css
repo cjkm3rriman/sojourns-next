@@ -152,6 +152,7 @@ h3 {
   font-weight: 600; /* Semi-bold */
   font-size: 1.2em;
   margin: 0 0 1rem 0;
+  letter-spacing: 0.025em;
 }
 
 @media (max-width: 768px) {
@@ -229,7 +230,7 @@ p {
 }
 
 /* Flight-specific item card layout */
-.flight-item-card {
+.item-card {
   border: none;
   background: none;
   padding: 0;
@@ -239,7 +240,7 @@ p {
   box-sizing: border-box;
 }
 
-.flight-sidebar {
+.item-sidebar {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -247,9 +248,9 @@ p {
   flex-shrink: 0;
 }
 
-.flight-icon {
-  width: 32px;
-  height: 32px;
+.item-icon {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -257,7 +258,13 @@ p {
   margin-bottom: 8px;
 }
 
-.flight-timeline {
+.item-icon-image {
+  object-fit: contain;
+  width: 40px;
+  height: 40px;
+}
+
+.item-timeline {
   width: 2px;
   flex: 1;
   background: linear-gradient(to bottom, #e8c998, #3c2b18);
@@ -265,7 +272,7 @@ p {
   position: relative;
 }
 
-.flight-timeline::before {
+.item-timeline::before {
   content: '';
   position: absolute;
   top: 0;
@@ -278,20 +285,21 @@ p {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
-.flight-content {
+.item-content {
   flex: 1;
   min-width: 0;
+  margin-top: 8px;
 }
 
 /* Flight Card Styles */
-.flight-title {
+.item-title {
   margin: 0 0 0.5rem 0;
   font-size: 1.3rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
 }
 
-.flight-date {
+.item-date {
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -300,13 +308,13 @@ p {
   opacity: 0.7;
 }
 
-.flight-date > div {
+.item-date > div {
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-.flight-number {
+.item-number {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
@@ -316,74 +324,78 @@ p {
   gap: 0.6rem;
 }
 
-.flight-number span {
+.item-number span {
   font-family:
     'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
 }
 
-.flight-times svg,
-.flight-departure svg,
-.flight-arrival svg,
-.flight-class svg,
-.flight-passengers svg,
-.flight-contact svg,
-.flight-confirmation svg,
-.flight-notes svg {
+.item-times svg,
+.item-departure svg,
+.item-arrival svg,
+.item-class svg,
+.item-passengers svg,
+.item-contact svg,
+.item-confirmation svg,
+.item-notes svg,
+.item-nights svg,
+.item-perks svg {
   opacity: 0.4;
   color: white;
 }
 
-.flight-number img {
+.item-number img {
   opacity: 1;
 }
 
-.flight-route {
+.item-route {
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
   opacity: 0.9;
 }
 
-.flight-times {
+.item-times {
   display: flex;
   gap: 1rem;
   margin-bottom: 0.5rem;
 }
 
-.flight-departure,
-.flight-arrival {
+.item-departure,
+.item-arrival {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.9rem;
 }
 
-.flight-departure span,
-.flight-arrival span,
-.flight-times span {
+.item-departure span,
+.item-arrival span,
+.item-times span {
   opacity: 0.8;
 }
 
-.flight-details {
+.item-details {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   font-size: 0.85rem;
 }
 
-.flight-details span {
+.item-details span {
   opacity: 0.8;
 }
 
-.flight-service-info {
+.item-service-info {
   display: flex;
   gap: 1.5rem;
 }
 
-.flight-class,
-.flight-passengers,
-.flight-contact,
-.flight-confirmation {
+.item-class,
+.item-passengers,
+.item-contact,
+.item-confirmation,
+.item-nights,
+.item-perks {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -395,7 +407,7 @@ p {
   margin-top: 1.4rem;
 }
 
-.flight-notes {
+.item-notes {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -404,7 +416,7 @@ p {
   margin-top: 0.5rem;
 }
 
-.flight-cost {
+.item-cost {
   margin-top: 1rem;
   font-size: 0.9rem;
   opacity: 0.8;
@@ -1108,6 +1120,7 @@ p {
   font-family: var(--font-sojourns), serif;
   font-weight: 400; /* Regular weight for Sojourns font */
   font-size: 1.4em;
+  letter-spacing: 0.025em;
 }
 
 /* Itinerary column spacing and typography */
@@ -1126,12 +1139,6 @@ p {
 .itinerary h2 {
   margin: 0 0 0.2rem 0;
   font-size: 1.4rem;
-}
-
-.itinerary p {
-  margin: 0 0 2rem 0;
-  opacity: 0.7;
-  font-size: 0.9rem;
 }
 
 /* Sticky left column */
@@ -1401,8 +1408,6 @@ p {
 
 /* Documents section styling */
 .documents-section {
-  border-top: 1px dashed rgba(255, 255, 255, 0.2);
-  padding-top: 1.5rem;
 }
 
 /* Add to Itinerary section styling */
@@ -1476,4 +1481,55 @@ p {
   border-radius: 4px;
   background-color: rgba(255, 255, 255, 0.2);
   text-transform: capitalize;
+}
+
+.itinerary-strap {
+  margin: 0.3em 0;
+}
+
+.itinerary-updated {
+  font-size: 0.8rem;
+  margin: 0.3em 0 0.3em -1px;
+  opacity: 0.6;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: inline-block;
+  text-transform: lowercase;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 20vh;
+  background: linear-gradient(
+    to bottom,
+    rgba(16, 16, 22, 0.9) 0%,
+    rgba(16, 16, 22, 0.3) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 20vh;
+  background: linear-gradient(
+    to top,
+    rgba(16, 16, 22, 0.9) 0%,
+    rgba(16, 16, 22, 0.3) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 999;
 }

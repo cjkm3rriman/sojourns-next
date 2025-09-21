@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserDisplayData } from '@/lib/user-data';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const userData = await getUserDisplayData();
+    const userData = await getUserDisplayData(request);
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

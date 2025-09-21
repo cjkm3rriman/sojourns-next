@@ -10,8 +10,8 @@ export async function GET(
 ) {
   try {
     // Get authenticated user
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const { userId } = getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

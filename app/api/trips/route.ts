@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { trips, users, memberships } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import type { auth as AuthType } from '@clerk/nextjs/server';
 import { nanoid } from 'nanoid';
 
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const { userId } = getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -82,11 +81,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Get authenticated user
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const { userId } = getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

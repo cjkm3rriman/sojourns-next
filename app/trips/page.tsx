@@ -266,7 +266,7 @@ export default function DashboardPage() {
                         <div className="trips-card">
                           {trip.icon && (
                             <Image
-                              src={`/images/icons/trip/${trip.icon}.png`}
+                              src={`/images/icons/trip/${trip.icon}.png?v=1`}
                               alt="Trip icon"
                               width={72}
                               height={72}

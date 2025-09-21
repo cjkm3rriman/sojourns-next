@@ -34,6 +34,7 @@ import {
   CheckCircle,
   XCircle,
   ArrowLeft,
+  Moon,
 } from 'react-feather';
 
 interface Trip {
@@ -231,7 +232,7 @@ export default function TripDetailPage() {
       const img = document.createElement('img');
       img.onload = () => setIconExists(true);
       img.onerror = () => setIconExists(false);
-      img.src = `/images/icons/trip/${trip.icon}.png`;
+      img.src = `/images/icons/trip/${trip.icon}.png?v=1`;
     } else {
       setIconExists(false);
     }
@@ -512,17 +513,98 @@ export default function TripDetailPage() {
     <div
       style={{
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
         width: '100%',
-        height: '100vh',
+        minHeight: '100vh',
         boxSizing: 'border-box',
       }}
     >
+      <header
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%) translateZ(0)',
+          WebkitTransform: 'translateX(-50%) translateZ(0)',
+          zIndex: 1000,
+          display: 'inline-block',
+          borderRadius: '40px',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Light blur layer - covers full header */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Medium blur layer - fades from top to middle */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backdropFilter: 'blur(15px)',
+            WebkitBackdropFilter: 'blur(15px)',
+            mask: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 70%)',
+            WebkitMask:
+              'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Heavy blur layer - strongest at top */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            mask: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0) 50%)',
+            WebkitMask:
+              'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0) 50%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1
+            style={{
+              fontFamily: 'var(--font-sojourns), serif',
+              fontWeight: 400,
+              fontSize: '1.8rem',
+              margin: 0,
+              padding: '0.8rem 0.8rem 0.5rem 0.8rem',
+              display: 'block',
+              textTransform: 'uppercase',
+              textShadow: [
+                '0 2px 4px rgba(0, 0, 0, 0.3)',
+                '0 0 10px rgba(255, 255, 255, 0.037)',
+                '0 0 20px rgba(255, 255, 255, 0.025)',
+                '0 0 30px rgba(255, 255, 255, 0.012)',
+              ].join(', '),
+            }}
+          >
+            Sojourns
+          </h1>
+        </div>
+      </header>
       <main
         style={{
           display: 'flex',
           flexDirection: 'column',
-          padding: '3rem 2rem 2rem 2rem',
+          padding: '5rem 2rem 2rem 2rem',
           maxWidth: '1200px',
           width: '100%',
           boxSizing: 'border-box',
@@ -536,23 +618,47 @@ export default function TripDetailPage() {
             flex: 1,
           }}
         >
-          <div className="left-column">
+          <div
+            className="left-column"
+            style={{
+              position: 'fixed',
+              top: '40px',
+              left: '50%',
+              transform: 'translateX(-600px)',
+              width: 'calc((100vw - 1200px) / 2 + 1200px * 0.6)',
+              maxWidth: '600px',
+              zIndex: 1001,
+              height: 'calc(100vh - 40px)',
+              overflow: 'auto',
+              padding: '1rem 2rem 2rem 2rem',
+              boxSizing: 'border-box',
+            }}
+          >
             {/* Back to trips link at top of left column */}
             <div style={{ marginBottom: '1rem' }}>
-              <Link
-                href="/trips"
+              <div
                 style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  textDecoration: 'none',
-                  fontSize: '0.9rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
+                  fontSize: '0.9rem',
+                  color: 'rgba(255, 255, 255, 0.7)',
                 }}
               >
-                <ArrowLeft size={16} />
-                Back to Trips
-              </Link>
+                <Link
+                  href="/trips"
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Trips
+                </Link>
+              </div>
             </div>
 
             {viewingPdf ? (
@@ -607,102 +713,6 @@ export default function TripDetailPage() {
                 className="simple-card"
                 style={{ padding: '2rem', marginBottom: '1.5rem' }}
               >
-                {/* Trip Details */}
-                <div
-                  className="trip-details"
-                  style={{
-                    borderTop: 'none',
-                    paddingTop: 0,
-                    marginBottom: '2rem',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    <h3 style={{ margin: 0 }}>Trip Details</h3>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      <span style={{ opacity: 0.7 }}>
-                        updated {getRelativeTime(trip.updatedAt)}
-                      </span>
-                      <span
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                          fontSize: '0.85rem',
-                          textTransform: 'capitalize',
-                        }}
-                      >
-                        {trip.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginBottom: '1rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontSize: '0.95rem',
-                      opacity: 0.8,
-                    }}
-                  >
-                    <Briefcase size={16} style={{ opacity: 0.7 }} />
-                    {trip.clientName}
-                    {trip.groupSize && (
-                      <>
-                        <span style={{ marginLeft: '0.5rem' }}></span>
-                        <Users size={14} style={{ opacity: 0.7 }} />
-                        {trip.groupSize}{' '}
-                        {trip.groupSize === 1 ? 'traveler' : 'travelers'}
-                      </>
-                    )}
-                  </div>
-
-                  {trip.flightsPhoneNumber && (
-                    <div
-                      style={{
-                        marginBottom: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        fontSize: '0.95rem',
-                        opacity: 0.8,
-                      }}
-                    >
-                      <Phone size={16} style={{ opacity: 0.7 }} />
-                      <span className="monospace">
-                        {trip.flightsPhoneNumber}
-                      </span>
-                    </div>
-                  )}
-
-                  {trip.tripSummary && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <strong>Summary:</strong> {trip.tripSummary}
-                    </div>
-                  )}
-
-                  {trip.notes && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <strong>Notes:</strong> {trip.notes}
-                    </div>
-                  )}
-                </div>
-
                 {/* Documents List */}
                 <div className="documents-section">
                   {documentsLoading ? (
@@ -753,55 +763,75 @@ export default function TripDetailPage() {
                           >
                             <div className="file-content">
                               <div
-                                className={`file-header ${doc.mimeType === 'application/pdf' ? 'clickable' : 'non-clickable'}`}
-                                onClick={() => {
-                                  if (doc.mimeType === 'application/pdf') {
-                                    setViewingPdf(doc);
-                                  }
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '1rem',
                                 }}
-                                title={doc.originalName}
                               >
-                                <span
-                                  className={`file-name ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
-                                >
-                                  {shortenFilename(doc.originalName)}
-                                </span>
-                                <Eye
-                                  size={16}
-                                  className={`file-icon ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
+                                <FileText
+                                  size={18}
+                                  style={{
+                                    opacity: 0.6,
+                                    flexShrink: 0,
+                                    strokeWidth: 2,
+                                  }}
                                 />
-                              </div>
+                                <div style={{ flex: 1 }}>
+                                  <div
+                                    className={`file-header ${doc.mimeType === 'application/pdf' ? 'clickable' : 'non-clickable'}`}
+                                    onClick={() => {
+                                      if (doc.mimeType === 'application/pdf') {
+                                        setViewingPdf(doc);
+                                      }
+                                    }}
+                                    title={doc.originalName}
+                                  >
+                                    <span
+                                      className={`file-name ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
+                                    >
+                                      {shortenFilename(doc.originalName)}
+                                    </span>
+                                    <Eye
+                                      size={16}
+                                      className={`file-icon ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
+                                    />
+                                  </div>
 
-                              <div className="file-badges">
-                                <span
-                                  className={`file-status-badge ${doc.status === 'uploaded' ? 'uploaded' : doc.status}`}
-                                >
-                                  {doc.status === 'ignored'
-                                    ? 'ignored'
-                                    : doc.status === 'uploaded'
-                                      ? 'not processed'
-                                      : doc.status}
-                                </span>
-                                <span className="file-date-badge">
-                                  {new Date(doc.createdAt)
-                                    .toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric',
-                                    })
-                                    .replace(/(\d+),/, (match, day) => {
-                                      const dayNum = parseInt(day);
-                                      const suffix =
-                                        dayNum % 10 === 1 && dayNum !== 11
-                                          ? 'st'
-                                          : dayNum % 10 === 2 && dayNum !== 12
-                                            ? 'nd'
-                                            : dayNum % 10 === 3 && dayNum !== 13
-                                              ? 'rd'
-                                              : 'th';
-                                      return `${day}${suffix}`;
-                                    })}
-                                </span>
+                                  <div className="file-badges">
+                                    <span
+                                      className={`file-status-badge ${doc.status === 'uploaded' ? 'uploaded' : doc.status}`}
+                                    >
+                                      {doc.status === 'ignored'
+                                        ? 'ignored'
+                                        : doc.status === 'uploaded'
+                                          ? 'not processed'
+                                          : doc.status}
+                                    </span>
+                                    <span className="file-date-badge">
+                                      {new Date(doc.createdAt)
+                                        .toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          year: 'numeric',
+                                        })
+                                        .replace(/(\d+),/, (match, day) => {
+                                          const dayNum = parseInt(day);
+                                          const suffix =
+                                            dayNum % 10 === 1 && dayNum !== 11
+                                              ? 'st'
+                                              : dayNum % 10 === 2 &&
+                                                  dayNum !== 12
+                                                ? 'nd'
+                                                : dayNum % 10 === 3 &&
+                                                    dayNum !== 13
+                                                  ? 'rd'
+                                                  : 'th';
+                                          return `${day}${suffix}`;
+                                        })}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
@@ -879,8 +909,23 @@ export default function TripDetailPage() {
                                 `Analysis complete! Created ${data.createdItems} items and ${data.createdPlaces} places from ${data.analyzedDocuments.length} documents.`,
                               );
 
-                              // Optionally refresh the page to show new items
-                              // window.location.reload();
+                              // Refresh the items data to show new items
+                              const itemsResponse = await fetch(
+                                `/api/trips/${tripId}/items`,
+                              );
+                              if (itemsResponse.ok) {
+                                const itemsData = await itemsResponse.json();
+                                setItems(itemsData.items || []);
+                              }
+
+                              // Also refresh documents to update their status
+                              const docsResponse = await fetch(
+                                `/api/trips/${tripId}/documents`,
+                              );
+                              if (docsResponse.ok) {
+                                const docsData = await docsResponse.json();
+                                setDocuments(docsData.documents || []);
+                              }
                             } catch (error) {
                               console.error('Analysis error:', error);
 
@@ -909,7 +954,10 @@ export default function TripDetailPage() {
                           }}
                         >
                           {analyzing ? (
-                            'Analyzing PDFs...'
+                            <>
+                              <Cpu size={16} />
+                              Analyzing Documents...
+                            </>
                           ) : (
                             <>
                               <Cpu size={16} />
@@ -1111,7 +1159,13 @@ export default function TripDetailPage() {
           </div>
 
           {/* Right Column - Trip Items */}
-          <div className="itinerary" style={{ marginLeft: '2rem' }}>
+          <div
+            className="itinerary"
+            style={{
+              marginLeft: '600px',
+              width: '500px',
+            }}
+          >
             {itemsLoading ? (
               <div
                 className="simple-card"
@@ -1128,7 +1182,7 @@ export default function TripDetailPage() {
                 >
                   {iconExists && trip?.icon && (
                     <Image
-                      src={`/images/icons/trip/${trip.icon}.png`}
+                      src={`/images/icons/trip/${trip.icon}.png?v=1`}
                       alt="Trip icon"
                       width={72}
                       height={72}
@@ -1136,15 +1190,34 @@ export default function TripDetailPage() {
                     />
                   )}
                   <div style={{ flex: 1 }}>
-                    <h1
+                    <div
                       style={{
-                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
                         marginBottom: '0.25rem',
-                        fontSize: '2rem',
                       }}
                     >
-                      {trip.destination || 'Somewhere Delightful'}
-                    </h1>
+                      <h1
+                        style={{
+                          margin: 0,
+                          fontSize: '2rem',
+                        }}
+                      >
+                        {trip.destination || 'Somewhere Delightful'}
+                      </h1>
+                      <span
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          fontSize: '0.85rem',
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {trip.status}
+                      </span>
+                    </div>
                     <span
                       style={{
                         fontSize: '1.1rem',
@@ -1211,23 +1284,27 @@ export default function TripDetailPage() {
                     : 'Itinerary'}
                 </h2>
 
-                <p>
+                <p className="itinerary-strap">
                   Brought to you by {trip.agentName || 'your agent'} at{' '}
                   {trip.organizationName || 'their organization'}
                 </p>
 
+                <p className="itinerary-updated">
+                  Last updated {getRelativeTime(trip.updatedAt)}
+                </p>
+
                 {items.length === 0 ? (
                   <div
-                    className="simple-card"
                     style={{
-                      padding: '2rem',
-                      textAlign: 'center',
-                      opacity: 0.7,
+                      padding: '1rem 0',
+                      textAlign: 'left',
+                      opacity: 0.5,
                     }}
                   >
-                    <p>No items yet</p>
-                    <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
-                      Upload and analyze documents to build your itinerary
+                    <p>
+                      <strong>No items yet.</strong>
+                      <br />
+                      Upload confirmation documents to get started.
                     </p>
                   </div>
                 ) : (
@@ -1238,361 +1315,527 @@ export default function TripDetailPage() {
                       gap: '1rem',
                     }}
                   >
-                    {items.map((item) => (
-                      <div
-                        key={item.id}
-                        className={
-                          item.type === 'flight'
-                            ? 'flight-item-card'
-                            : 'item-card'
-                        }
-                      >
-                        {item.type === 'flight' ? (
-                          // Custom Flight Layout
-                          <>
-                            <div className="flight-sidebar">
-                              <div className="flight-icon">
-                                <Image
-                                  src="/images/icons/flights.png"
-                                  alt="Flight icon"
-                                  width={40}
-                                  height={40}
-                                  style={{ objectFit: 'contain' }}
-                                />
-                              </div>
-                              <div className="flight-timeline"></div>
-                            </div>
-                            <div className="flight-content">
-                              {/* Flight Title */}
-                              <h3 className="flight-title">
-                                {item.destinationPlaceCity
-                                  ? `Flight to ${item.destinationPlaceCity}`
-                                  : 'Flight'}
-                              </h3>
-
-                              {/* Date and Time Info */}
-                              <div className="flight-date">
-                                <div>
-                                  {item.startDate
-                                    ? new Date(
-                                        item.startDate,
-                                      ).toLocaleDateString('en-US', {
-                                        weekday: 'short',
-                                        month: 'short',
-                                        day: 'numeric',
-                                      }) +
-                                      ' at ' +
-                                      new Date(item.startDate)
-                                        .toISOString()
-                                        .slice(11, 16)
-                                        .replace(
-                                          /(\d{2}):(\d{2})/,
-                                          (_, h, m) => {
-                                            const hour12 =
-                                              parseInt(h) === 0
-                                                ? 12
-                                                : parseInt(h) > 12
-                                                  ? parseInt(h) - 12
-                                                  : parseInt(h);
-                                            const ampm =
-                                              parseInt(h) >= 12 ? 'pm' : 'am';
-                                            return `${hour12}:${m}${ampm}`;
-                                          },
-                                        )
-                                    : 'Date TBD'}
+                    {items
+                      .sort((a, b) => {
+                        // Sort by start time, with items without start time at the end
+                        if (!a.startDate && !b.startDate) return 0;
+                        if (!a.startDate) return 1;
+                        if (!b.startDate) return -1;
+                        return (
+                          new Date(a.startDate).getTime() -
+                          new Date(b.startDate).getTime()
+                        );
+                      })
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          className={`item-card item-${item.type}`}
+                        >
+                          {item.type === 'flight' ? (
+                            // Custom Flight Layout
+                            <>
+                              <div className="item-sidebar">
+                                <div className="item-icon">
+                                  <Image
+                                    src="/images/icons/items/flights.png"
+                                    alt="Flight icon"
+                                    width={40}
+                                    height={40}
+                                    className="item-icon-image"
+                                  />
                                 </div>
+                                <div className="item-timeline"></div>
                               </div>
+                              <div className="item-content">
+                                {/* Flight Title */}
+                                <h3 className="item-title">
+                                  {item.destinationPlaceCity
+                                    ? `Flight to ${item.destinationPlaceCity}`
+                                    : 'Flight'}
+                                </h3>
 
-                              {/* Flight Details - Flight Number */}
-                              {(() => {
-                                let carrierCode = '';
-                                let flightNumber = '';
-                                let hasData = false;
-                                if (item.data) {
-                                  try {
-                                    const parsedData = JSON.parse(item.data);
-                                    carrierCode = parsedData.carrierCode;
-                                    flightNumber = parsedData.flightNumber;
-                                    hasData = !!(carrierCode && flightNumber);
-                                  } catch (e) {
-                                    // Keep default fallback
+                                {/* Date and Time Info */}
+                                <div className="item-date">
+                                  <div>
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.startDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /(\d{2}):(\d{2})/,
+                                            (_, h, m) => {
+                                              const hour12 =
+                                                parseInt(h) === 0
+                                                  ? 12
+                                                  : parseInt(h) > 12
+                                                    ? parseInt(h) - 12
+                                                    : parseInt(h);
+                                              const ampm =
+                                                parseInt(h) >= 12 ? 'pm' : 'am';
+                                              return `${hour12}:${m}${ampm}`;
+                                            },
+                                          )
+                                      : 'Date TBD'}
+                                  </div>
+                                </div>
+
+                                {/* Flight Details - Flight Number */}
+                                {(() => {
+                                  let carrierCode = '';
+                                  let flightNumber = '';
+                                  let hasData = false;
+                                  if (item.data) {
+                                    try {
+                                      const parsedData = JSON.parse(item.data);
+                                      carrierCode = parsedData.carrierCode;
+                                      flightNumber = parsedData.flightNumber;
+                                      hasData = !!(carrierCode && flightNumber);
+                                    } catch (e) {
+                                      // Keep default fallback
+                                    }
                                   }
-                                }
 
-                                const displayFlightNumber = hasData
-                                  ? `${carrierCode} ${flightNumber}`
-                                  : '-';
+                                  const displayFlightNumber = hasData
+                                    ? `${carrierCode} ${flightNumber}`
+                                    : '-';
 
-                                return (
-                                  <div className="flight-number">
-                                    {hasData && carrierCode && (
-                                      <Image
-                                        src={`https://airlabs.co/img/airline/m/${carrierCode}.png`}
-                                        alt="Airline logo"
-                                        width={24}
-                                        height={24}
-                                        style={{ objectFit: 'contain' }}
-                                      />
-                                    )}
-                                    <span
-                                      style={{ opacity: hasData ? 1 : 0.4 }}
-                                    >
-                                      {displayFlightNumber}
+                                  return (
+                                    <div className="item-number">
+                                      {hasData && carrierCode && (
+                                        <Image
+                                          src={`https://airlabs.co/img/airline/m/${carrierCode}.png`}
+                                          alt="Airline logo"
+                                          width={24}
+                                          height={24}
+                                          style={{ objectFit: 'contain' }}
+                                        />
+                                      )}
+                                      <span
+                                        style={{ opacity: hasData ? 1 : 0.4 }}
+                                      >
+                                        {displayFlightNumber}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* Route */}
+                                <div className="item-route">
+                                  {item.originPlaceCity || 'Origin'} →{' '}
+                                  {item.destinationPlaceCity || 'Destination'}
+                                </div>
+
+                                {/* Departure and Arrival Times */}
+                                <div className="item-times">
+                                  <div className="item-departure">
+                                    <ArrowUpCircle
+                                      size={16}
+                                      style={{
+                                        transform: 'rotate(45deg)',
+                                      }}
+                                    />
+                                    <span>
+                                      <span>
+                                        {item.originPlaceShortName || 'DEP'}
+                                      </span>{' '}
+                                      <span>
+                                        {item.originLocationSpecific || ''}
+                                      </span>{' '}
+                                      {item.startDate
+                                        ? new Date(item.startDate)
+                                            .toISOString()
+                                            .slice(11, 16)
+                                            .replace(
+                                              /(\d{2}):(\d{2})/,
+                                              (_, h, m) => {
+                                                const hour12 =
+                                                  parseInt(h) === 0
+                                                    ? 12
+                                                    : parseInt(h) > 12
+                                                      ? parseInt(h) - 12
+                                                      : parseInt(h);
+                                                const ampm =
+                                                  parseInt(h) >= 12
+                                                    ? 'PM'
+                                                    : 'AM';
+                                                return `${hour12}:${m}${ampm}`;
+                                              },
+                                            )
+                                        : '10:30AM'}
                                     </span>
                                   </div>
-                                );
-                              })()}
-
-                              {/* Route */}
-                              <div className="flight-route">
-                                {item.originPlaceCity || 'Origin'} →{' '}
-                                {item.destinationPlaceCity || 'Destination'}
-                              </div>
-
-                              {/* Departure and Arrival Times */}
-                              <div className="flight-times">
-                                <div className="flight-departure">
-                                  <ArrowUpCircle
-                                    size={16}
-                                    style={{
-                                      transform: 'rotate(45deg)',
-                                    }}
-                                  />
-                                  <span>
+                                  <div className="item-arrival">
+                                    <ArrowDownCircle
+                                      size={16}
+                                      style={{
+                                        transform: 'rotate(-45deg)',
+                                      }}
+                                    />
                                     <span>
-                                      {item.originPlaceShortName || 'DEP'}
-                                    </span>{' '}
-                                    <span>
-                                      {item.originLocationSpecific || ''}
-                                    </span>{' '}
-                                    {item.startDate
-                                      ? new Date(item.startDate)
-                                          .toISOString()
-                                          .slice(11, 16)
-                                          .replace(
-                                            /(\d{2}):(\d{2})/,
-                                            (_, h, m) => {
-                                              const hour12 =
-                                                parseInt(h) === 0
-                                                  ? 12
-                                                  : parseInt(h) > 12
-                                                    ? parseInt(h) - 12
-                                                    : parseInt(h);
-                                              const ampm =
-                                                parseInt(h) >= 12 ? 'PM' : 'AM';
-                                              return `${hour12}:${m}${ampm}`;
-                                            },
-                                          )
-                                      : '10:30AM'}
-                                  </span>
+                                      <span>
+                                        {item.destinationPlaceShortName ||
+                                          'ARR'}
+                                      </span>{' '}
+                                      <span>
+                                        {item.destinationLocationSpecific || ''}
+                                      </span>{' '}
+                                      {item.endDate
+                                        ? new Date(item.endDate)
+                                            .toISOString()
+                                            .slice(11, 16)
+                                            .replace(
+                                              /(\d{2}):(\d{2})/,
+                                              (_, h, m) => {
+                                                const hour12 =
+                                                  parseInt(h) === 0
+                                                    ? 12
+                                                    : parseInt(h) > 12
+                                                      ? parseInt(h) - 12
+                                                      : parseInt(h);
+                                                const ampm =
+                                                  parseInt(h) >= 12
+                                                    ? 'PM'
+                                                    : 'AM';
+                                                return `${hour12}:${m}${ampm}`;
+                                              },
+                                            )
+                                        : '12:15PM'}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="flight-arrival">
-                                  <ArrowDownCircle
-                                    size={16}
-                                    style={{
-                                      transform: 'rotate(-45deg)',
-                                    }}
-                                  />
-                                  <span>
-                                    <span>
-                                      {item.destinationPlaceShortName || 'ARR'}
-                                    </span>{' '}
-                                    <span>
-                                      {item.destinationLocationSpecific || ''}
-                                    </span>{' '}
-                                    {item.endDate
-                                      ? new Date(item.endDate)
-                                          .toISOString()
-                                          .slice(11, 16)
-                                          .replace(
-                                            /(\d{2}):(\d{2})/,
-                                            (_, h, m) => {
-                                              const hour12 =
-                                                parseInt(h) === 0
-                                                  ? 12
-                                                  : parseInt(h) > 12
-                                                    ? parseInt(h) - 12
-                                                    : parseInt(h);
-                                              const ampm =
-                                                parseInt(h) >= 12 ? 'PM' : 'AM';
-                                              return `${hour12}:${m}${ampm}`;
-                                            },
-                                          )
-                                      : '12:15PM'}
-                                  </span>
-                                </div>
-                              </div>
 
-                              {/* Additional Flight Details */}
-                              <div className="flight-details">
-                                <div className="flight-service-info">
-                                  <div className="flight-class">
-                                    <Award size={16} />{' '}
-                                    {(() => {
-                                      let flightClass = '';
-                                      let hasData = false;
-                                      if (item.data) {
-                                        try {
-                                          const parsedData = JSON.parse(
-                                            item.data,
-                                          );
-                                          flightClass = parsedData.class;
-                                          hasData = !!flightClass;
-                                        } catch (e) {
-                                          // Keep default fallback
+                                {/* Additional Flight Details */}
+                                <div className="item-details">
+                                  <div className="item-service-info">
+                                    <div className="item-class">
+                                      <Award size={16} />{' '}
+                                      {(() => {
+                                        let flightClass = '';
+                                        let hasData = false;
+                                        if (item.data) {
+                                          try {
+                                            const parsedData = JSON.parse(
+                                              item.data,
+                                            );
+                                            flightClass = parsedData.class;
+                                            hasData = !!flightClass;
+                                          } catch (e) {
+                                            // Keep default fallback
+                                          }
                                         }
-                                      }
-                                      return (
-                                        <span
-                                          style={{ opacity: hasData ? 1 : 0.4 }}
+                                        return (
+                                          <span
+                                            style={{
+                                              opacity: hasData ? 1 : 0.4,
+                                            }}
+                                          >
+                                            {flightClass || '-'}
+                                          </span>
+                                        );
+                                      })()}
+                                    </div>
+                                    <div className="item-passengers">
+                                      <Users size={16} />{' '}
+                                      {(() => {
+                                        // Use trip group size or fallback to dash
+                                        const displayText = trip?.groupSize
+                                          ? `${trip.groupSize}`
+                                          : '-';
+                                        const opacity = trip?.groupSize
+                                          ? 0.7
+                                          : 0.4;
+
+                                        return (
+                                          <span style={{ opacity }}>
+                                            {displayText}
+                                          </span>
+                                        );
+                                      })()}
+                                    </div>
+                                  </div>
+                                  <div className="item-contact">
+                                    <Phone size={16} />{' '}
+                                    <span
+                                      className="monospace"
+                                      style={{
+                                        opacity: trip?.flightsPhoneNumber
+                                          ? undefined
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {trip?.flightsPhoneNumber || '-'}
+                                    </span>
+                                  </div>
+                                  <div className="item-confirmation">
+                                    <Hash size={16} />{' '}
+                                    <span
+                                      className="monospace"
+                                      style={{
+                                        opacity: item.confirmationNumber
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.confirmationNumber || '-'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="secondary">
+                                  <div className="item-notes">
+                                    <FileText size={16} />{' '}
+                                    <span
+                                      style={{ opacity: item.notes ? 1 : 0.4 }}
+                                    >
+                                      {item.notes || '-'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          ) : item.type === 'hotel' ? (
+                            // Custom Hotel Layout
+                            <>
+                              <div className="item-sidebar">
+                                <div className="item-icon">
+                                  <Image
+                                    src="/images/icons/items/hotel.png"
+                                    alt="Hotel icon"
+                                    width={40}
+                                    height={40}
+                                    className="item-icon-image"
+                                  />
+                                </div>
+                                <div className="item-timeline"></div>
+                              </div>
+                              <div className="item-content">
+                                {/* Hotel Title */}
+                                <h3 className="item-title">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      data.hotelName ||
+                                      item.title ||
+                                      'Hotel Stay'
+                                    );
+                                  })()}
+                                </h3>
+
+                                {/* Check-in Date and Time Info */}
+                                <div className="item-date">
+                                  <div>
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.startDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /(\d{2}):(\d{2})/,
+                                            (_, h, m) => {
+                                              const hour12 =
+                                                parseInt(h) === 0
+                                                  ? 12
+                                                  : parseInt(h) > 12
+                                                    ? parseInt(h) - 12
+                                                    : parseInt(h);
+                                              const ampm =
+                                                parseInt(h) >= 12 ? 'pm' : 'am';
+                                              return `${hour12}:${m}${ampm}`;
+                                            },
+                                          )
+                                      : 'TBD Check In Date'}
+                                  </div>
+                                </div>
+
+                                {/* Hotel Details */}
+                                <div className="item-details">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      <>
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            gap: '1rem',
+                                          }}
                                         >
-                                          {flightClass || '-'}
-                                        </span>
-                                      );
-                                    })()}
+                                          {data.roomCategory && (
+                                            <div className="item-class">
+                                              <Award size={16} />
+                                              <span>{data.roomCategory}</span>
+                                            </div>
+                                          )}
+                                          <div className="item-passengers">
+                                            <Users size={16} />
+                                            <span>{trip?.groupSize || 1}</span>
+                                          </div>
+                                        </div>
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            gap: '1rem',
+                                          }}
+                                        >
+                                          <div className="item-nights">
+                                            <Moon size={16} />
+                                            <span>
+                                              {(() => {
+                                                if (
+                                                  item.startDate &&
+                                                  item.endDate
+                                                ) {
+                                                  const start = new Date(
+                                                    item.startDate,
+                                                  );
+                                                  const end = new Date(
+                                                    item.endDate,
+                                                  );
+                                                  const nights = Math.ceil(
+                                                    (end.getTime() -
+                                                      start.getTime()) /
+                                                      (1000 * 60 * 60 * 24),
+                                                  );
+                                                  return `${nights} night${nights !== 1 ? 's' : ''}`;
+                                                }
+                                                return 'TBD nights';
+                                              })()}
+                                            </span>
+                                          </div>
+                                          {data.perks &&
+                                            data.perks.length > 0 && (
+                                              <div className="item-perks">
+                                                <Award size={16} />
+                                                <span>
+                                                  {data.perks.length} perk
+                                                  {data.perks.length !== 1
+                                                    ? 's'
+                                                    : ''}
+                                                </span>
+                                              </div>
+                                            )}
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+                                  <div className="item-contact">
+                                    <Phone size={16} />
+                                    <span
+                                      style={{
+                                        opacity: item.phoneNumber
+                                          ? undefined
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.phoneNumber || '-'}
+                                    </span>
                                   </div>
-                                  <div className="flight-passengers">
-                                    <Users size={16} />{' '}
-                                    {(() => {
-                                      // Use trip group size or fallback to dash
-                                      const displayText = trip?.groupSize
-                                        ? `${trip.groupSize}`
-                                        : '-';
-                                      const opacity = trip?.groupSize
-                                        ? 0.7
-                                        : 0.4;
-
-                                      return (
-                                        <span style={{ opacity }}>
-                                          {displayText}
-                                        </span>
-                                      );
-                                    })()}
+                                  <div className="item-confirmation">
+                                    <Hash size={16} />
+                                    <span
+                                      className="monospace"
+                                      style={{
+                                        opacity: item.confirmationNumber
+                                          ? undefined
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.confirmationNumber || '-'}
+                                    </span>
                                   </div>
-                                </div>
-                                <div className="flight-contact">
-                                  <Phone size={16} />{' '}
-                                  <span
-                                    className="monospace"
-                                    style={{
-                                      opacity: trip?.flightsPhoneNumber
-                                        ? 1
-                                        : 0.4,
-                                    }}
-                                  >
-                                    {trip?.flightsPhoneNumber || '-'}
-                                  </span>
-                                </div>
-                                <div className="flight-confirmation">
-                                  <Hash size={16} />{' '}
-                                  <span
-                                    className="monospace"
-                                    style={{
-                                      opacity: item.confirmationNumber
-                                        ? 1
-                                        : 0.4,
-                                    }}
-                                  >
-                                    {item.confirmationNumber || '-'}
-                                  </span>
+                                  <div className="item-notes">
+                                    <FileText size={16} />
+                                    <span
+                                      style={{ opacity: item.notes ? 1 : 0.4 }}
+                                    >
+                                      {item.notes || '-'}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-
-                              <div className="secondary">
-                                <div className="flight-notes">
-                                  <FileText size={16} />{' '}
-                                  <span
-                                    style={{ opacity: item.notes ? 1 : 0.4 }}
-                                  >
-                                    {item.notes || '-'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          // Default Layout for Non-Flight Items
-                          <>
-                            {/* Item Type Icon and Title */}
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                marginBottom: '0.75rem',
-                              }}
-                            >
-                              <span
+                            </>
+                          ) : (
+                            // Default Layout for Other Items
+                            <>
+                              {/* Item Type Icon and Title */}
+                              <div
                                 style={{
                                   display: 'flex',
                                   alignItems: 'center',
+                                  gap: '0.75rem',
+                                  marginBottom: '0.75rem',
                                 }}
                               >
-                                {item.type === 'hotel' ? (
-                                  <Home size={20} />
-                                ) : item.type === 'restaurant' ? (
-                                  <Coffee size={20} />
-                                ) : item.type === 'transfer' ? (
-                                  <Navigation2 size={20} />
-                                ) : (
-                                  <Zap size={20} />
-                                )}
-                              </span>
-                              <h3
-                                style={{
-                                  margin: 0,
-                                  fontSize: '1.1rem',
-                                  fontWeight: '600',
-                                }}
-                              >
-                                {item.title}
-                              </h3>
-                            </div>
-
-                            {/* Item Details */}
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0.5rem',
-                              }}
-                            >
-                              {item.description && (
-                                <p
+                                <span
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  {item.type === 'hotel' ? (
+                                    <Home size={20} />
+                                  ) : item.type === 'restaurant' ? (
+                                    <Coffee size={20} />
+                                  ) : item.type === 'transfer' ? (
+                                    <Navigation2 size={20} />
+                                  ) : (
+                                    <Zap size={20} />
+                                  )}
+                                </span>
+                                <h3
                                   style={{
                                     margin: 0,
-                                    fontSize: '0.9rem',
-                                    opacity: 0.8,
-                                    lineHeight: '1.4',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '600',
                                   }}
                                 >
-                                  {item.description}
-                                </p>
-                              )}
+                                  {item.title}
+                                </h3>
+                              </div>
 
-                              {/* Show origin/destination for transfer items */}
-                              {item.type === 'transfer' &&
-                              (item.originPlaceName ||
-                                item.destinationPlaceName) ? (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.7,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.3rem',
-                                  }}
-                                >
-                                  <MapPin size={14} />
-                                  {item.originPlaceName || '?'}
-                                  {item.originLocationSpecific &&
-                                    ` (${item.originLocationSpecific})`}{' '}
-                                  → {item.destinationPlaceName || '?'}
-                                  {item.destinationLocationSpecific &&
-                                    ` (${item.destinationLocationSpecific})`}
-                                </div>
-                              ) : (
-                                item.placeName && (
+                              {/* Item Details */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '0.5rem',
+                                }}
+                              >
+                                {item.description && (
+                                  <p
+                                    style={{
+                                      margin: 0,
+                                      fontSize: '0.9rem',
+                                      opacity: 0.8,
+                                      lineHeight: '1.4',
+                                    }}
+                                  >
+                                    {item.description}
+                                  </p>
+                                )}
+
+                                {/* Show origin/destination for transfer items */}
+                                {item.type === 'transfer' &&
+                                (item.originPlaceName ||
+                                  item.destinationPlaceName) ? (
                                   <div
                                     style={{
                                       fontSize: '0.85rem',
@@ -1602,49 +1845,31 @@ export default function TripDetailPage() {
                                       gap: '0.3rem',
                                     }}
                                   >
-                                    <MapPin size={14} /> {item.placeName}
+                                    <MapPin size={14} />
+                                    {item.originPlaceName || '?'}
+                                    {item.originLocationSpecific &&
+                                      ` (${item.originLocationSpecific})`}{' '}
+                                    → {item.destinationPlaceName || '?'}
+                                    {item.destinationLocationSpecific &&
+                                      ` (${item.destinationLocationSpecific})`}
                                   </div>
-                                )
-                              )}
+                                ) : (
+                                  item.placeName && (
+                                    <div
+                                      style={{
+                                        fontSize: '0.85rem',
+                                        opacity: 0.7,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem',
+                                      }}
+                                    >
+                                      <MapPin size={14} /> {item.placeName}
+                                    </div>
+                                  )
+                                )}
 
-                              {(item.startDate || item.endDate) && (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.7,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.3rem',
-                                  }}
-                                >
-                                  <Clock size={14} />
-                                  {item.startDate
-                                    ? new Date(item.startDate).toLocaleString()
-                                    : 'TBD'}
-                                  {item.endDate &&
-                                    item.startDate !== item.endDate &&
-                                    ` - ${new Date(item.endDate).toLocaleString()}`}
-                                </div>
-                              )}
-
-                              {item.cost && (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.7,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.3rem',
-                                  }}
-                                >
-                                  <DollarSign size={14} /> {item.cost}
-                                </div>
-                              )}
-
-                              {/* Show passenger count for hotels and transfers */}
-                              {(item.type === 'hotel' ||
-                                item.type === 'transfer') &&
-                                trip?.groupSize && (
+                                {(item.startDate || item.endDate) && (
                                   <div
                                     style={{
                                       fontSize: '0.85rem',
@@ -1654,99 +1879,138 @@ export default function TripDetailPage() {
                                       gap: '0.3rem',
                                     }}
                                   >
-                                    <Users size={14} /> {trip.groupSize}
+                                    <Clock size={14} />
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleString()
+                                      : 'TBD'}
+                                    {item.endDate &&
+                                      item.startDate !== item.endDate &&
+                                      ` - ${new Date(item.endDate).toLocaleString()}`}
                                   </div>
                                 )}
 
-                              {item.placeName && (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.7,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.3rem',
-                                  }}
-                                >
-                                  <Home size={14} /> {item.placeName}
-                                  {item.placeAddress &&
-                                    ` - ${item.placeAddress}`}
-                                </div>
-                              )}
+                                {item.cost && (
+                                  <div
+                                    style={{
+                                      fontSize: '0.85rem',
+                                      opacity: 0.7,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.3rem',
+                                    }}
+                                  >
+                                    <DollarSign size={14} /> {item.cost}
+                                  </div>
+                                )}
 
-                              {item.phoneNumber && (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.7,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.3rem',
-                                  }}
-                                >
-                                  <Phone size={14} />{' '}
-                                  <span className="monospace">
-                                    {item.phoneNumber}
-                                  </span>
-                                </div>
-                              )}
+                                {/* Show passenger count for hotels and transfers */}
+                                {(item.type === 'hotel' ||
+                                  item.type === 'transfer') &&
+                                  trip?.groupSize && (
+                                    <div
+                                      style={{
+                                        fontSize: '0.85rem',
+                                        opacity: 0.7,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem',
+                                      }}
+                                    >
+                                      <Users size={14} /> {trip.groupSize}
+                                    </div>
+                                  )}
 
-                              {item.confirmationNumber && (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.7,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.3rem',
-                                  }}
-                                >
-                                  <Hash size={14} />{' '}
-                                  <span className="monospace">
-                                    {item.confirmationNumber}
-                                  </span>
-                                </div>
-                              )}
+                                {item.placeName && (
+                                  <div
+                                    style={{
+                                      fontSize: '0.85rem',
+                                      opacity: 0.7,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.3rem',
+                                    }}
+                                  >
+                                    <Home size={14} /> {item.placeName}
+                                    {item.placeAddress &&
+                                      ` - ${item.placeAddress}`}
+                                  </div>
+                                )}
 
-                              {item.notes && (
-                                <div
+                                {item.phoneNumber && (
+                                  <div
+                                    style={{
+                                      fontSize: '0.85rem',
+                                      opacity: 0.7,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.3rem',
+                                    }}
+                                  >
+                                    <Phone size={14} />{' '}
+                                    <span className="monospace">
+                                      {item.phoneNumber}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {item.confirmationNumber && (
+                                  <div
+                                    style={{
+                                      fontSize: '0.85rem',
+                                      opacity: 0.7,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.3rem',
+                                    }}
+                                  >
+                                    <Hash size={14} />{' '}
+                                    <span className="monospace">
+                                      {item.confirmationNumber}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {item.notes && (
+                                  <div
+                                    style={{
+                                      fontSize: '0.85rem',
+                                      opacity: 0.8,
+                                      fontStyle: 'italic',
+                                      marginTop: '0.5rem',
+                                      padding: '0.5rem',
+                                      backgroundColor:
+                                        'rgba(255, 255, 255, 0.05)',
+                                      borderRadius: '4px',
+                                    }}
+                                  >
+                                    Agent Notes: {item.notes}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Status Badge */}
+                              <div style={{ marginTop: '0.75rem' }}>
+                                <span
                                   style={{
-                                    fontSize: '0.85rem',
-                                    opacity: 0.8,
-                                    fontStyle: 'italic',
-                                    marginTop: '0.5rem',
-                                    padding: '0.5rem',
+                                    fontSize: '0.8rem',
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '12px',
                                     backgroundColor:
-                                      'rgba(255, 255, 255, 0.05)',
-                                    borderRadius: '4px',
+                                      item.status === 'confirmed'
+                                        ? 'rgba(0, 255, 0, 0.2)'
+                                        : 'rgba(255, 165, 0, 0.2)',
+                                    textTransform: 'capitalize',
                                   }}
                                 >
-                                  Agent Notes: {item.notes}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Status Badge */}
-                            <div style={{ marginTop: '0.75rem' }}>
-                              <span
-                                style={{
-                                  fontSize: '0.8rem',
-                                  padding: '0.25rem 0.5rem',
-                                  borderRadius: '12px',
-                                  backgroundColor:
-                                    item.status === 'confirmed'
-                                      ? 'rgba(0, 255, 0, 0.2)'
-                                      : 'rgba(255, 165, 0, 0.2)',
-                                  textTransform: 'capitalize',
-                                }}
-                              >
-                                {item.status}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
+                                  {item.status}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>

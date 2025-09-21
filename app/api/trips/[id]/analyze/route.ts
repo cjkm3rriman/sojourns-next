@@ -14,6 +14,168 @@ import { r2Client, R2_BUCKET } from '@/lib/r2';
 import OpenAI from 'openai';
 import { validatePhoneNumber } from '@/lib/validation';
 
+// Helper function to find or create hotel place
+async function findOrCreateHotel(
+  hotelName: string,
+  db: any,
+  createdPlaces: any[] = [],
+): Promise<string | null> {
+  try {
+    console.log(`Looking up hotel: ${hotelName}`);
+
+    // First check if hotel already exists in our places table
+    const existingHotel = await db
+      .select()
+      .from(places)
+      .where(and(eq(places.name, hotelName), eq(places.type, 'hotel')))
+      .limit(1);
+
+    if (existingHotel.length > 0) {
+      console.log(
+        `Found existing hotel: ${hotelName} -> ${existingHotel[0].id}`,
+      );
+      return existingHotel[0].id;
+    }
+
+    // Hotel doesn't exist, query Google Places API
+    console.log(`Hotel ${hotelName} not found, querying Google Places API`);
+
+    // TODO: Replace with actual Google Places API key
+    const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!googlePlacesApiKey) {
+      console.warn(
+        'GOOGLE_PLACES_API_KEY not set, creating hotel without address data',
+      );
+
+      // Create hotel with just the name
+      const [newHotel] = await db
+        .insert(places)
+        .values({
+          name: hotelName,
+          shortName: null,
+          type: 'hotel',
+          city: null,
+          state: null,
+          country: null,
+          lat: null,
+          lng: null,
+          timezone: null,
+          description: `Hotel`,
+        })
+        .returning();
+
+      console.log(`Created new hotel place: ${hotelName} -> ${newHotel.id}`);
+      createdPlaces.push(newHotel);
+      return newHotel.id;
+    }
+
+    // Use the new Places API (New) with Text Search
+    const placesResponse = await fetch(
+      `https://places.googleapis.com/v1/places:searchText`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': googlePlacesApiKey,
+          'X-Goog-FieldMask':
+            'places.displayName,places.formattedAddress,places.location,places.id',
+        },
+        body: JSON.stringify({
+          textQuery: hotelName,
+          languageCode: 'en',
+        }),
+      },
+    );
+
+    if (!placesResponse.ok) {
+      console.warn(
+        `Google Places API error for ${hotelName}: ${placesResponse.status} ${placesResponse.statusText}`,
+      );
+      const errorText = await placesResponse.text();
+      console.warn(`Google Places error response:`, errorText);
+
+      // Create hotel with just the name
+      const [newHotel] = await db
+        .insert(places)
+        .values({
+          name: hotelName,
+          shortName: null,
+          type: 'hotel',
+          city: null,
+          state: null,
+          country: null,
+          lat: null,
+          lng: null,
+          timezone: null,
+          description: `Hotel`,
+        })
+        .returning();
+
+      console.log(`Created new hotel place: ${hotelName} -> ${newHotel.id}`);
+      createdPlaces.push(newHotel);
+      return newHotel.id;
+    }
+
+    const placesData = await placesResponse.json();
+    console.log(
+      `Google Places data for ${hotelName}:`,
+      JSON.stringify(placesData, null, 2),
+    );
+
+    if (!placesData.places || placesData.places.length === 0) {
+      console.warn(`No Google Places results found for ${hotelName}`);
+
+      // Create hotel with just the name
+      const [newHotel] = await db
+        .insert(places)
+        .values({
+          name: hotelName,
+          shortName: null,
+          type: 'hotel',
+          city: null,
+          state: null,
+          country: null,
+          lat: null,
+          lng: null,
+          timezone: null,
+          description: `Hotel`,
+        })
+        .returning();
+
+      console.log(`Created new hotel place: ${hotelName} -> ${newHotel.id}`);
+      createdPlaces.push(newHotel);
+      return newHotel.id;
+    }
+
+    const place = placesData.places[0];
+
+    // Create new hotel place from Google Places data
+    const [newHotel] = await db
+      .insert(places)
+      .values({
+        name: place.displayName?.text || hotelName,
+        shortName: null,
+        type: 'hotel',
+        address: place.formattedAddress || null,
+        city: null, // TODO: Parse from formattedAddress if needed
+        state: null, // TODO: Parse from formattedAddress if needed
+        country: null, // TODO: Parse from formattedAddress if needed
+        lat: place.location?.latitude || null,
+        lng: place.location?.longitude || null,
+        timezone: null,
+        description: `Hotel`,
+      })
+      .returning();
+
+    console.log(`Created new hotel place: ${hotelName} -> ${newHotel.id}`);
+    createdPlaces.push(newHotel);
+    return newHotel.id;
+  } catch (error) {
+    console.error(`Error finding/creating hotel ${hotelName}:`, error);
+    return null;
+  }
+}
+
 // Helper function to find or create airport place
 async function findOrCreateAirport(
   iataCode: string,
@@ -110,8 +272,9 @@ export async function POST(
     });
 
     // Get authenticated user
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const authResult = getAuth(request);
+    const { userId } = authResult;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -306,9 +469,9 @@ export async function POST(
         console.log('Creating assistant for document analysis...');
         const assistant = await openai.beta.assistants.create({
           name: `Travel Analyzer ${Date.now()}`, // Unique name to avoid conflicts
-          instructions: `You are a flight document analyzer. Extract ONLY basic flight information from travel documents.
+          instructions: `You are a travel document analyzer. Extract flight AND hotel information from travel documents.
 
-EXTRACT ONLY THESE 6 FIELDS:
+FOR FLIGHTS - EXTRACT THESE 6 FIELDS:
 1. Flight number (e.g., "AA123", "DL456") - REQUIRED
 2. Departure datetime in local time - OPTIONAL
 3. Arrival datetime in local time - OPTIONAL
@@ -316,23 +479,58 @@ EXTRACT ONLY THESE 6 FIELDS:
 5. Class of service - OPTIONAL
 6. Confirmation number - OPTIONAL
 
-IMPORTANT: PDFs may not contain both departure and arrival times, or may contain neither. Only populate datetime fields when you are confident the information is present and accurate.
+FOR HOTELS - EXTRACT THESE 6 FIELDS:
+1. Hotel name - REQUIRED
+2. Check-in datetime in local time - OPTIONAL
+3. Check-out datetime in local time - OPTIONAL
+4. Room category/type - OPTIONAL
+5. Perks/amenities (array of strings) - OPTIONAL
+6. Confirmation number - OPTIONAL
 
-FOCUS EXCLUSIVELY ON FLIGHTS:
+❌ CRITICAL DATETIME RULES - READ CAREFULLY ❌:
+- ONLY extract times that are EXPLICITLY stated in the document
+- DO NOT guess, infer, or calculate missing times
+- If you see "arrives 6:15 AM" - ONLY set arrivalDateTime, leave departureDateTime as null
+- If you see "departs 7:30 PM" - ONLY set departureDateTime, leave arrivalDateTime as null
+- If you see both departure and arrival times - set both fields
+- If you see neither - set both fields to null
+- ❌ NEVER set departureDateTime and arrivalDateTime to the same time
+- ❌ NEVER copy one time to the other field
+- ❌ NEVER assume or calculate the missing time based on the other time
+- ❌ WRONG: {"departureDateTime": "2025-10-07T06:15:00", "arrivalDateTime": "2025-10-07T06:15:00"}
+- ✅ CORRECT: {"departureDateTime": null, "arrivalDateTime": "2025-10-07T06:15:00"}
+
+HOTEL IDENTIFICATION KEYWORDS:
+- Look for: "check in", "check-in", "check out", "check-out", "your stay", "hotel", "accommodation", "room", "suite", "booking", "reservation"
+- Hotel confirmation patterns: "Hotel confirmation:", "Booking reference:", "Reservation number:", "Hotel booking:"
+
+FOCUS ON FLIGHTS AND HOTELS:
 - Extract each flight segment as a separate item
+- Extract each hotel stay as a separate item
 - Include connecting flights as separate items
-- Ignore hotels, restaurants, transfers, activities
+- Include multi-night hotel stays as single items
+- Ignore restaurants, transfers, activities (for now)
 
-Return a JSON response with this minimal structure:
+Return a JSON response with this structure:
 {
   "items": [
     {
+      "type": "flight",
       "flightNumber": "AA 123",
       "departureDateTime": "2024-03-15T10:30:00",
       "arrivalDateTime": "2024-03-15T22:15:00",
       "clientBooked": false,
       "class": "business",
       "confirmationNumber": "ABC123"
+    },
+    {
+      "type": "hotel",
+      "hotelName": "Marriott Downtown",
+      "checkInDateTime": "2024-03-15T15:00:00",
+      "checkOutDateTime": "2024-03-18T11:00:00",
+      "roomCategory": "King Executive Suite",
+      "perks": ["Free WiFi", "Executive Lounge Access"],
+      "confirmationNumber": "HTL456"
     }
   ]
 }
@@ -342,15 +540,25 @@ RULES:
 - Use ISO format YYYY-MM-DDTHH:MM:SS for datetimes (no timezone)
 - Times should be in local time as shown in the document
 - Ignore timezone indicators (EST, PST, etc.) - just extract the local time
-- Set departureDateTime or arrivalDateTime to null if not clearly stated
-- Only extract times you are confident about - it's better to leave null than guess
+- ❌ CRITICAL: Set departureDateTime or arrivalDateTime to null if not explicitly stated in the document
+- ❌ NEVER infer one time from the other - if only arrival time is shown, departureDateTime must be null
+- ❌ NEVER infer one time from the other - if only departure time is shown, arrivalDateTime must be null
+- ❌ NEVER set both times to the same value unless the document explicitly shows both the same time
+- ✅ Only extract times you are confident about - it's better to leave null than guess
+- ✅ If you see only "arrives 6:15 AM" → departureDateTime: null, arrivalDateTime: "06:15:00"
+- ✅ If you see only "departs 7:30 PM" → departureDateTime: "19:30:00", arrivalDateTime: null
 - Set clientBooked to true ONLY if you see explicit phrases like "own arrangement", "(own arrangement)", "booked by client", "booked by guest", "client booking" - DO NOT GUESS, set to false if uncertain
 - Set clientBooked to false by default unless explicitly indicated otherwise
 - For class, look for explicit mentions of: "first", "first class", "upper class", "business", "business class", "premium economy", "economy", "economy plus", "economy class", "club world", "main cabin", "coach"
 - Normalize class values to: "first", "business", "premium economy", "economy" (use these exact strings)
 - Set class to null if no class information is clearly stated - DO NOT GUESS the class
-- For confirmation numbers, look for: "PNR:", "Confirmation:", "Conf:", "Reference:", "Ref:", "Booking:", "Record Locator:", "Reservation:", or alphanumeric codes near these terms
+- For confirmation numbers, look for: "PNR:", "Confirmation:", "Conf:", "Reference:", "Ref:", "Booking:", "Record Locator:", "Reservation:", "Airline confirmation:", "Flight confirmation:", "Hotel confirmation:", "Hotel booking:", "Booking reference:", "Reservation number:", "Confirmation code:", "Confirmation #:", or alphanumeric codes near these terms
 - Extract confirmation numbers as they appear (preserve original format and case)
+- IMPORTANT: If only ONE confirmation number appears in the document, apply it to ALL flights extracted from that document (outbound and return flights often share the same confirmation)
+- If multiple different confirmation numbers exist, match them to their specific flights
+- Hotels typically have separate confirmation numbers from flights
+- For hotels: extract room categories like "Standard Room", "King Suite", "Executive Room", "Deluxe Double", etc. as they appear
+- For hotel perks: look for amenities like "Free WiFi", "Breakfast Included", "Pool Access", "Spa Access", "Executive Lounge", "Late Checkout", "Room Upgrade", etc.
 - Set confirmationNumber to null if no clear confirmation number is found - DO NOT GUESS
 - IMPORTANT: Better to leave clientBooked, class, and confirmationNumber blank/null than to guess incorrectly
 - Extract EVERY flight mentioned in the document
@@ -358,26 +566,44 @@ RULES:
 
 EXAMPLES:
 Input: "Flight AA123 departing JFK March 15 at 10:30 AM EST"
-Output: {"items": [{"flightNumber": "AA 123", "departureDateTime": "2024-03-15T10:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": null}]}
+Output: {"items": [{"type": "flight", "flightNumber": "AA 123", "departureDateTime": "2024-03-15T10:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": null}]}
 
 Input: "Delta 456 Atlanta to LAX March 16, departs 2:15 PM EST, arrives 4:45 PM PST Business Class - PNR: XYZ789"
-Output: {"items": [{"flightNumber": "DL 456", "departureDateTime": "2024-03-16T14:15:00", "arrivalDateTime": "2024-03-16T16:45:00", "clientBooked": false, "class": "business", "confirmationNumber": "XYZ789"}]}
+Output: {"items": [{"type": "flight", "flightNumber": "DL 456", "departureDateTime": "2024-03-16T14:15:00", "arrivalDateTime": "2024-03-16T16:45:00", "clientBooked": false, "class": "business", "confirmationNumber": "XYZ789"}]}
 
 Input: "United flight UA789 Economy Plus - no times specified"
-Output: {"items": [{"flightNumber": "UA 789", "departureDateTime": null, "arrivalDateTime": null, "clientBooked": false, "class": "premium economy", "confirmationNumber": null}]}
+Output: {"items": [{"type": "flight", "flightNumber": "UA 789", "departureDateTime": null, "arrivalDateTime": null, "clientBooked": false, "class": "premium economy", "confirmationNumber": null}]}
 
-Input: "Icelandair Flight FI 622. Flight departs from Newark (EWR). 6:15 AM - Flight arrives to Keflavik (KEF). Confirmation: KEF456"
-Output: {"items": [{"flightNumber": "FI 622", "departureDateTime": null, "arrivalDateTime": "2024-03-15T06:15", "clientBooked": false, "class": null, "confirmationNumber": "KEF456"}]}
+Input: "Icelandair Flight FI 622. Flight arrives to Keflavik (KEF) at 6:15 AM. Confirmation: KEF456"
+Output: {"items": [{"type": "flight", "flightNumber": "FI 622", "departureDateTime": null, "arrivalDateTime": "2024-03-15T06:15:00", "clientBooked": false, "class": null, "confirmationNumber": "KEF456"}]}
+
+Input: "Flight EI 111 departs Shannon at 11:00 AM. Confirmation: ABC123"
+Output: {"items": [{"type": "flight", "flightNumber": "EI 111", "departureDateTime": "2024-03-15T11:00:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "ABC123"}]}
+
+Input: "Flight FI 622 arrives at 6:15 AM (own arrangement). Confirmation: 82111287"
+Output: {"items": [{"type": "flight", "flightNumber": "FI 622", "departureDateTime": null, "arrivalDateTime": "2025-10-07T06:15:00", "clientBooked": true, "class": null, "confirmationNumber": "82111287"}]}
 
 Input: "Flight BA456 London to Paris 2:30 PM First Class - Own arrangement by client - Ref: ABC123"
-Output: {"items": [{"flightNumber": "BA 456", "departureDateTime": "2024-03-15T14:30:00", "arrivalDateTime": null, "clientBooked": true, "class": "first", "confirmationNumber": "ABC123"}]}
+Output: {"items": [{"type": "flight", "flightNumber": "BA 456", "departureDateTime": "2024-03-15T14:30:00", "arrivalDateTime": null, "clientBooked": true, "class": "first", "confirmationNumber": "ABC123"}]}
+
+Input: "Check in to Marriott Downtown March 15 at 3:00 PM. Check out March 18 at 11:00 AM. King Executive Suite with Executive Lounge Access and Free WiFi. Hotel confirmation: HTL789"
+Output: {"items": [{"type": "hotel", "hotelName": "Marriott Downtown", "checkInDateTime": "2024-03-15T15:00:00", "checkOutDateTime": "2024-03-18T11:00:00", "roomCategory": "King Executive Suite", "perks": ["Executive Lounge Access", "Free WiFi"], "confirmationNumber": "HTL789"}]}
+
+Input: "Your stay at The Plaza Hotel begins March 20. Deluxe Room. Breakfast included and late checkout available. Booking reference: PLZ456"
+Output: {"items": [{"type": "hotel", "hotelName": "The Plaza Hotel", "checkInDateTime": "2024-03-20T15:00:00", "checkOutDateTime": null, "roomCategory": "Deluxe Room", "perks": ["Breakfast included", "Late checkout"], "confirmationNumber": "PLZ456"}]}
 
 Input: "Virgin Atlantic VS123 Club World seat 2A departing 6:45 PM Record Locator: GHI789"
-Output: {"items": [{"flightNumber": "VS 123", "departureDateTime": "2024-03-15T18:45:00", "arrivalDateTime": null, "clientBooked": false, "class": "business", "confirmationNumber": "GHI789"}]}
+Output: {"items": [{"type": "flight", "flightNumber": "VS 123", "departureDateTime": "2024-03-15T18:45:00", "arrivalDateTime": null, "clientBooked": false, "class": "business", "confirmationNumber": "GHI789"}]}
 
 Input: "Flight LH456 Frankfurt to Munich 3:15 PM (own arrangement)"
-Output: {"items": [{"flightNumber": "LH 456", "departureDateTime": "2024-03-15T15:15:00", "arrivalDateTime": null, "clientBooked": true, "class": null, "confirmationNumber": null}]}`,
-          model: 'gpt-4o-mini',
+Output: {"items": [{"type": "flight", "flightNumber": "LH 456", "departureDateTime": "2024-03-15T15:15:00", "arrivalDateTime": null, "clientBooked": true, "class": null, "confirmationNumber": null}]}
+
+Input: "Aer Lingus EI110 JFK to Shannon 7:30 PM - Airline confirmation: 24IT7W"
+Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTime": "2024-03-15T19:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}]}
+
+Input: "Outbound: Flight EI110 JFK to Shannon March 19 7:30 PM. Return: Flight EI111 Shannon to JFK March 25 11:00 AM. Airline confirmation: 24IT7W"
+Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTime": "2024-03-19T19:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}, {"type": "flight", "flightNumber": "EI 111", "departureDateTime": "2024-03-25T11:00:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}]}`,
+          model: 'gpt-4o',
           tools: [{ type: 'file_search' }],
         });
 
@@ -388,7 +614,7 @@ Output: {"items": [{"flightNumber": "LH 456", "departureDateTime": "2024-03-15T1
           messages: [
             {
               role: 'user',
-              content: `Extract ONLY flight numbers, departure times, and arrival times from "${doc.originalName}". Return minimal JSON with just these 3 fields per flight.`,
+              content: `Extract flight and hotel information from "${doc.originalName}". Return JSON with flights (flight number, departure/arrival times, class, confirmation) and hotels (hotel name, check-in/out times, room category, perks, confirmation).`,
               attachments: [
                 {
                   file_id: openaiFileId,
@@ -513,248 +739,245 @@ Output: {"items": [{"flightNumber": "LH 456", "departureDateTime": "2024-03-15T1
           extractedData.items = [];
         }
 
-        // Convert simplified extraction format and enrich with Amadeus data
-        const processedItems = [];
+        // Convert simplified extraction format and enrich with OAG data
+        const processedItems: any[] = [];
 
         for (const item of extractedData.items) {
-          let amadeusFlightData = null;
+          // Handle different item types
+          if (item.type === 'flight') {
+            await processFlightItem(item, db, createdPlaces, processedItems);
+          } else if (item.type === 'hotel') {
+            await processHotelItem(item, db, createdPlaces, processedItems);
+          } else {
+            console.warn(`Unknown item type: ${item.type}, skipping`);
+          }
+        }
 
-          // Call Amadeus API for each flight
+        // Helper function to process flight items
+        async function processFlightItem(
+          item: any,
+          db: any,
+          createdPlaces: any[],
+          processedItems: any[],
+        ) {
+          let oagFlightData = null;
+
+          // Call OAG API for each flight
           if (item.flightNumber) {
             try {
-              // Parse flight number into carrier code and flight number for Amadeus
+              // Parse flight number into carrier code and flight number for OAG
               const flightIdent = item.flightNumber.replace(/\s+/g, ''); // Remove spaces (AA 123 -> AA123)
               const match = flightIdent.match(/^([A-Z]{2,3})(\d+)$/);
 
               if (!match) {
                 console.warn(
-                  `Invalid flight number format for Amadeus: ${item.flightNumber}`,
+                  `Invalid flight number format for OAG: ${item.flightNumber}`,
                 );
-                continue;
+                return;
               }
 
               const carrierCode = match[1];
               const flightNumber = match[2];
 
               // Determine scheduled departure date
-              let scheduledDepartureDate = null;
+              // Prepare departure and arrival dates from extracted data
+              let departureDate = '';
+              let arrivalDate = '';
+
               if (item.departureDateTime) {
-                scheduledDepartureDate = new Date(item.departureDateTime)
+                departureDate = new Date(item.departureDateTime)
                   .toISOString()
                   .split('T')[0]; // YYYY-MM-DD
-              } else if (item.arrivalDateTime) {
-                // If only arrival time, estimate departure date (same day or day before)
-                const arrivalDate = new Date(item.arrivalDateTime);
-                arrivalDate.setDate(arrivalDate.getDate() - 1); // Assume departure day before arrival
-                scheduledDepartureDate = arrivalDate
+              }
+
+              if (item.arrivalDateTime) {
+                arrivalDate = new Date(item.arrivalDateTime)
                   .toISOString()
-                  .split('T')[0];
-              } else {
-                // No times available, try today's date
-                scheduledDepartureDate = new Date().toISOString().split('T')[0];
+                  .split('T')[0]; // YYYY-MM-DD
               }
 
               console.log(
-                `Calling Amadeus API for flight ${carrierCode}${flightNumber} on ${scheduledDepartureDate}`,
+                `Calling OAG API for flight ${carrierCode}${flightNumber} - Departure: ${departureDate || 'not specified'}, Arrival: ${arrivalDate || 'not specified'}`,
               );
 
-              // Get Amadeus access token first (using test environment)
-              const tokenResponse = await fetch(
-                'https://test.api.amadeus.com/v1/security/oauth2/token',
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                  },
-                  body: `grant_type=client_credentials&client_id=${process.env.AMADEUS_API_KEY}&client_secret=${process.env.AMADEUS_API_SECRET}`,
-                },
-              );
+              // Call OAG Flight Instances API with both dates (with retry logic)
+              let retryCount = 0;
+              const maxRetries = 2;
 
-              if (!tokenResponse.ok) {
-                console.warn(
-                  `Amadeus token error: ${tokenResponse.status} ${tokenResponse.statusText}`,
-                );
-                console.warn(
-                  `Using Amadeus API Key: ${process.env.AMADEUS_API_KEY}`,
-                );
-                const tokenErrorText = await tokenResponse.text();
-                console.warn(`Amadeus token error response:`, tokenErrorText);
-                continue;
+              while (retryCount <= maxRetries && !oagFlightData) {
+                if (retryCount > 0) {
+                  console.log(
+                    `Retrying OAG API call for ${carrierCode}${flightNumber} (attempt ${retryCount + 1})`,
+                  );
+                  // Add a small delay before retry
+                  await new Promise((resolve) =>
+                    setTimeout(resolve, 1000 * retryCount),
+                  );
+                }
+
+                try {
+                  const oagResponse = await fetch(
+                    `https://api.oag.com/flight-instances/?version=v2&carrierCode=${carrierCode}&FlightNumber=${flightNumber}&CodeType=IATA&DepartureDateTime=${departureDate}&ArrivalDateTime=${arrivalDate}`,
+                    {
+                      headers: {
+                        'Subscription-Key': process.env.OAG_PRIMARY_KEY!,
+                        Accept: 'application/json',
+                      },
+                    },
+                  );
+
+                  if (oagResponse.ok) {
+                    oagFlightData = await oagResponse.json();
+                    console.log(
+                      `OAG response for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}):`,
+                      JSON.stringify(oagFlightData, null, 2),
+                    );
+                    break; // Success, exit retry loop
+                  } else {
+                    console.warn(
+                      `OAG API error for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}): ${oagResponse.status} ${oagResponse.statusText}`,
+                    );
+                    const errorText = await oagResponse.text();
+                    console.warn(`OAG error response:`, errorText);
+                  }
+                } catch (fetchError) {
+                  console.warn(
+                    `OAG API fetch error for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}):`,
+                    fetchError,
+                  );
+                }
+
+                retryCount++;
               }
-
-              const tokenData = await tokenResponse.json();
-              const accessToken = tokenData.access_token;
-
-              // Call Amadeus On Demand Flight Status API (using test environment)
-              const amadeusResponse = await fetch(
-                `https://test.api.amadeus.com/v2/schedule/flights?carrierCode=${carrierCode}&flightNumber=${flightNumber}&scheduledDepartureDate=${scheduledDepartureDate}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: 'application/json',
-                  },
-                },
-              );
-
-              if (amadeusResponse.ok) {
-                amadeusFlightData = await amadeusResponse.json();
-                console.log(
-                  `Amadeus response for ${carrierCode}${flightNumber}:`,
-                  JSON.stringify(amadeusFlightData, null, 2),
-                );
-              } else {
-                console.warn(
-                  `Amadeus API error for ${carrierCode}${flightNumber}: ${amadeusResponse.status} ${amadeusResponse.statusText}`,
-                );
-                const errorText = await amadeusResponse.text();
-                console.warn(`Amadeus error response:`, errorText);
-              }
-            } catch (amadeusError) {
+            } catch (oagError) {
               console.error(
-                `Error calling Amadeus API for flight ${item.flightNumber}:`,
-                amadeusError,
+                `Error calling OAG API for flight ${item.flightNumber}:`,
+                oagError,
               );
             }
           }
 
-          // Map Amadeus data to our structure
+          // Map OAG data to our structure
           let mappedStartDate = item.departureDateTime || null;
           let mappedEndDate = item.arrivalDateTime || null;
+          // Capitalize class if present
+          const capitalizedClass = item.class
+            ? item.class.charAt(0).toUpperCase() +
+              item.class.slice(1).toLowerCase()
+            : null;
+
           let mappedData = {
             flightNumber: item.flightNumber || null,
-            carrierCode: null, // Will be populated from Amadeus if available
-            class: item.class || null, // Class of service from AI extraction
+            carrierCode: null, // Will be populated from OAG if available
+            class: capitalizedClass, // Class of service from AI extraction (capitalized)
           };
 
-          // If we have Amadeus data, use the first flight result
+          // If we have OAG data, use the first flight result
           if (
-            amadeusFlightData &&
-            amadeusFlightData.data &&
-            amadeusFlightData.data.length > 0
+            oagFlightData &&
+            oagFlightData.data &&
+            oagFlightData.data.length > 0
           ) {
-            const firstFlight = amadeusFlightData.data[0];
+            const firstFlight = oagFlightData.data[0];
 
-            // Extract scheduled times from Amadeus response
-            if (
-              firstFlight.flightPoints &&
-              firstFlight.flightPoints.length >= 2
-            ) {
-              const departure = firstFlight.flightPoints[0];
-              const arrival =
-                firstFlight.flightPoints[firstFlight.flightPoints.length - 1];
-
-              // Use departure timing (strip timezone)
-              if (departure.departure && departure.departure.timings) {
-                const stdTiming = departure.departure.timings.find(
-                  (t: any) => t.qualifier === 'STD',
+            // Extract scheduled times from OAG response
+            if (firstFlight.departure && firstFlight.arrival) {
+              // Use departure timing - combine date and time
+              if (firstFlight.departure.date && firstFlight.departure.time) {
+                mappedStartDate = `${firstFlight.departure.date.local}T${firstFlight.departure.time.local}`;
+                console.log(
+                  `Using OAG departure time (local): ${mappedStartDate}`,
                 );
-                if (stdTiming) {
-                  // Remove timezone info and store as local datetime
-                  let localTime = stdTiming.value;
-                  // Remove Z (UTC indicator)
-                  if (localTime.endsWith('Z')) {
-                    localTime = localTime.slice(0, -1);
-                  }
-                  // Remove timezone offset like +01:00 or -05:00
-                  localTime = localTime.replace(/[+-]\d{2}:\d{2}$/, '');
-                  mappedStartDate = localTime;
-                  console.log(
-                    `Using Amadeus STD (local): ${mappedStartDate} (original: ${stdTiming.value})`,
-                  );
-                }
               }
 
-              // Use arrival timing (strip timezone)
-              if (arrival.arrival && arrival.arrival.timings) {
-                const staTiming = arrival.arrival.timings.find(
-                  (t: any) => t.qualifier === 'STA',
-                );
-                if (staTiming) {
-                  // Remove timezone info and store as local datetime
-                  let localTime = staTiming.value;
-                  // Remove Z (UTC indicator)
-                  if (localTime.endsWith('Z')) {
-                    localTime = localTime.slice(0, -1);
-                  }
-                  // Remove timezone offset like +01:00 or -05:00
-                  localTime = localTime.replace(/[+-]\d{2}:\d{2}$/, '');
-                  mappedEndDate = localTime;
-                  console.log(
-                    `Using Amadeus STA (local): ${mappedEndDate} (original: ${staTiming.value})`,
-                  );
-                }
+              // Use arrival timing - combine date and time
+              if (firstFlight.arrival.date && firstFlight.arrival.time) {
+                mappedEndDate = `${firstFlight.arrival.date.local}T${firstFlight.arrival.time.local}`;
+                console.log(`Using OAG arrival time (local): ${mappedEndDate}`);
               }
             }
 
             // Add essential flight information to data field
-            if (firstFlight.flightDesignator) {
+            if (firstFlight.carrier && firstFlight.flightNumber) {
               mappedData = {
-                carrierCode: firstFlight.flightDesignator.carrierCode || null,
-                flightNumber: firstFlight.flightDesignator.flightNumber || null,
+                carrierCode: firstFlight.carrier.iata || null,
+                flightNumber: firstFlight.flightNumber || null,
                 class: mappedData.class, // Preserve class from AI extraction
               };
 
               console.log(
-                `Mapped Amadeus flight data: Carrier=${firstFlight.flightDesignator.carrierCode}, Flight=${firstFlight.flightDesignator.flightNumber}, Class=${mappedData.class}`,
+                `Mapped OAG flight data: Carrier=${firstFlight.carrier.iata}, Flight=${firstFlight.flightNumber}, Class=${mappedData.class}`,
               );
             }
           }
 
-          // Handle airport places and terminal info for origin and destination using Amadeus data + FlightAware airport details
+          // Handle airport places and terminal info for origin and destination using OAG data + FlightAware airport details
           let originPlaceId = null;
           let destinationPlaceId = null;
           let originLocationSpecific = null;
           let destinationLocationSpecific = null;
 
           if (
-            amadeusFlightData &&
-            amadeusFlightData.data &&
-            amadeusFlightData.data.length > 0
+            oagFlightData &&
+            oagFlightData.data &&
+            oagFlightData.data.length > 0
           ) {
-            const firstFlight = amadeusFlightData.data[0];
+            const firstFlight = oagFlightData.data[0];
 
-            if (
-              firstFlight.flightPoints &&
-              firstFlight.flightPoints.length >= 2
-            ) {
-              const departure = firstFlight.flightPoints[0];
-              const arrival =
-                firstFlight.flightPoints[firstFlight.flightPoints.length - 1];
-
-              // Process origin airport
-              if (departure.iataCode) {
-                originPlaceId = await findOrCreateAirport(
-                  departure.iataCode,
-                  db,
-                  createdPlaces,
-                );
-              }
-
-              // Process destination airport
-              if (arrival.iataCode) {
-                destinationPlaceId = await findOrCreateAirport(
-                  arrival.iataCode,
-                  db,
-                  createdPlaces,
-                );
-              }
-
-              // Extract terminal information
-              if (departure.departure?.terminal?.code) {
-                originLocationSpecific = departure.departure.terminal.code;
-                console.log(`Origin terminal: ${originLocationSpecific}`);
-              }
-
-              if (arrival.arrival?.terminal?.code) {
-                destinationLocationSpecific = arrival.arrival.terminal.code;
-                console.log(
-                  `Destination terminal: ${destinationLocationSpecific}`,
-                );
-              }
+            // Process origin airport from OAG departure data
+            if (firstFlight.departure?.airport?.iata) {
+              originPlaceId = await findOrCreateAirport(
+                firstFlight.departure.airport.iata,
+                db,
+                createdPlaces,
+              );
+              console.log(
+                `Origin airport: ${firstFlight.departure.airport.iata} -> ${originPlaceId}`,
+              );
             }
+
+            // Process destination airport from OAG arrival data
+            if (firstFlight.arrival?.airport?.iata) {
+              destinationPlaceId = await findOrCreateAirport(
+                firstFlight.arrival.airport.iata,
+                db,
+                createdPlaces,
+              );
+              console.log(
+                `Destination airport: ${firstFlight.arrival.airport.iata} -> ${destinationPlaceId}`,
+              );
+            }
+
+            // Extract terminal information from OAG format
+            if (firstFlight.departure?.terminal) {
+              const terminal = firstFlight.departure.terminal.trim();
+              // If single number or letter, prefix with 'T'
+              originLocationSpecific = /^[0-9A-Za-z]$/.test(terminal)
+                ? `T${terminal}`
+                : terminal;
+              console.log(`Origin terminal: ${originLocationSpecific}`);
+            }
+
+            if (firstFlight.arrival?.terminal) {
+              const terminal = firstFlight.arrival.terminal.trim();
+              // If single number or letter, prefix with 'T'
+              destinationLocationSpecific = /^[0-9A-Za-z]$/.test(terminal)
+                ? `T${terminal}`
+                : terminal;
+              console.log(
+                `Destination terminal: ${destinationLocationSpecific}`,
+              );
+            }
+          } else {
+            console.warn(
+              `No OAG data available for flight ${item.flightNumber}, will attempt fallback airport creation if possible`,
+            );
+
+            // TODO: Add fallback logic here to extract airport codes from flight route info
+            // For now, we'll rely on the user to manually add airport information
           }
 
-          // Create processed item with mapped Amadeus data
+          // Create processed item with mapped OAG data
           const processedItem = {
             type: 'flight',
             title: '', // Will be auto-generated
@@ -765,9 +988,106 @@ Output: {"items": [{"flightNumber": "LH 456", "departureDateTime": "2024-03-15T1
             destinationPlaceId,
             originLocationSpecific,
             destinationLocationSpecific,
+            confirmationNumber: item.confirmationNumber || null,
+            clientBooked: item.clientBooked || false,
             data: mappedData,
           };
 
+          console.log(
+            `Flight ${item.flightNumber}: originPlaceId=${originPlaceId}, destinationPlaceId=${destinationPlaceId}`,
+          );
+
+          processedItems.push(processedItem);
+        }
+
+        // Helper function to process hotel items
+        async function processHotelItem(
+          item: any,
+          db: any,
+          createdPlaces: any[],
+          processedItems: any[],
+        ) {
+          console.log(`Processing hotel: ${item.hotelName}`);
+
+          // Create hotel place
+          let hotelPlaceId = null;
+          if (item.hotelName) {
+            hotelPlaceId = await findOrCreateHotel(
+              item.hotelName,
+              db,
+              createdPlaces,
+            );
+            console.log(`Hotel place: ${item.hotelName} -> ${hotelPlaceId}`);
+          }
+
+          // Parse check-in/out times
+          let checkInDate = null;
+          let checkOutDate = null;
+
+          if (item.checkInDateTime) {
+            // Handle both Date objects and ISO strings
+            if (item.checkInDateTime instanceof Date) {
+              checkInDate = item.checkInDateTime;
+            } else if (typeof item.checkInDateTime === 'string') {
+              const parts = item.checkInDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                checkInDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          if (item.checkOutDateTime) {
+            // Handle both Date objects and ISO strings
+            if (item.checkOutDateTime instanceof Date) {
+              checkOutDate = item.checkOutDateTime;
+            } else if (typeof item.checkOutDateTime === 'string') {
+              const parts = item.checkOutDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                checkOutDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          const processedItem = {
+            type: 'hotel',
+            title: item.hotelName || 'Hotel Stay',
+            description: '', // Will be auto-generated
+            startDate: checkInDate,
+            endDate: checkOutDate,
+            originPlaceId: hotelPlaceId,
+            destinationPlaceId: null,
+            originLocationSpecific: null, // TODO: Room number if available later
+            destinationLocationSpecific: null,
+            confirmationNumber: item.confirmationNumber || null,
+            clientBooked: false, // TODO: Extract from hotel data if needed
+            data: {
+              hotelName: item.hotelName || null,
+              roomCategory: item.roomCategory || null,
+              perks: item.perks || [],
+            },
+          };
+
+          console.log(`Hotel ${item.hotelName}: originPlaceId=${hotelPlaceId}`);
           processedItems.push(processedItem);
         }
 
@@ -826,69 +1146,96 @@ Output: {"items": [{"flightNumber": "LH 456", "departureDateTime": "2024-03-15T1
         if (extractedData.items && Array.isArray(extractedData.items)) {
           for (const itemData of extractedData.items) {
             // Convert datetime strings to Date objects while preserving local time
-            console.log(`Raw startDate from Amadeus: ${itemData.startDate}`);
-            console.log(`Raw endDate from Amadeus: ${itemData.endDate}`);
+            console.log(`Raw startDate from OAG: ${itemData.startDate}`);
+            console.log(`Raw endDate from OAG: ${itemData.endDate}`);
 
             let startDate = null;
             let endDate = null;
 
             if (itemData.startDate) {
-              // Parse as UTC to preserve the raw time values without timezone interpretation
-              const parts = itemData.startDate.match(
-                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
-              );
-              if (parts) {
-                startDate = new Date(
-                  Date.UTC(
-                    parseInt(parts[1]), // year
-                    parseInt(parts[2]) - 1, // month (0-indexed)
-                    parseInt(parts[3]), // day
-                    parseInt(parts[4]), // hour
-                    parseInt(parts[5]), // minute
-                  ),
+              // Handle both Date objects and ISO strings
+              if (itemData.startDate instanceof Date) {
+                startDate = itemData.startDate;
+              } else {
+                // Parse as UTC to preserve the raw time values without timezone interpretation
+                const parts = itemData.startDate.match(
+                  /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
                 );
-                console.log(
-                  `Parsed startDate as UTC: ${startDate.toISOString()}`,
-                );
-                console.log(`Local representation: ${startDate.toString()}`);
+                if (parts) {
+                  startDate = new Date(
+                    Date.UTC(
+                      parseInt(parts[1]), // year
+                      parseInt(parts[2]) - 1, // month (0-indexed)
+                      parseInt(parts[3]), // day
+                      parseInt(parts[4]), // hour
+                      parseInt(parts[5]), // minute
+                    ),
+                  );
+                  console.log(
+                    `Parsed startDate as UTC: ${startDate.toISOString()}`,
+                  );
+                  console.log(`Local representation: ${startDate.toString()}`);
+                }
               }
             }
 
             if (itemData.endDate) {
-              // Parse as UTC to preserve the raw time values without timezone interpretation
-              const parts = itemData.endDate.match(
-                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
-              );
-              if (parts) {
-                endDate = new Date(
-                  Date.UTC(
-                    parseInt(parts[1]), // year
-                    parseInt(parts[2]) - 1, // month (0-indexed)
-                    parseInt(parts[3]), // day
-                    parseInt(parts[4]), // hour
-                    parseInt(parts[5]), // minute
-                  ),
+              // Handle both Date objects and ISO strings
+              if (itemData.endDate instanceof Date) {
+                endDate = itemData.endDate;
+              } else {
+                // Parse as UTC to preserve the raw time values without timezone interpretation
+                const parts = itemData.endDate.match(
+                  /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
                 );
-                console.log(`Parsed endDate as UTC: ${endDate.toISOString()}`);
-                console.log(`Local representation: ${endDate.toString()}`);
+                if (parts) {
+                  endDate = new Date(
+                    Date.UTC(
+                      parseInt(parts[1]), // year
+                      parseInt(parts[2]) - 1, // month (0-indexed)
+                      parseInt(parts[3]), // day
+                      parseInt(parts[4]), // hour
+                      parseInt(parts[5]), // minute
+                    ),
+                  );
+                  console.log(
+                    `Parsed endDate as UTC: ${endDate.toISOString()}`,
+                  );
+                  console.log(`Local representation: ${endDate.toString()}`);
+                }
               }
             }
 
-            // Generate flight title from Amadeus data if available
-            const flightNumber = itemData.data?.flightNumber || 'Flight';
-            const carrierCode = itemData.data?.carrierCode || '';
-            const generatedTitle = carrierCode
-              ? `${carrierCode} ${flightNumber}`
-              : flightNumber;
+            // Generate title based on item type
+            let generatedTitle = 'Item';
+            let itemType = itemData.type || 'flight';
+            let itemIcon = 'flight';
+
+            if (itemType === 'flight') {
+              const flightNumber = itemData.data?.flightNumber || 'Flight';
+              const carrierCode = itemData.data?.carrierCode || '';
+              generatedTitle = carrierCode
+                ? `${carrierCode} ${flightNumber}`
+                : flightNumber;
+              itemIcon = 'flight';
+            } else if (itemType === 'hotel') {
+              generatedTitle =
+                itemData.data?.hotelName || itemData.title || 'Hotel Stay';
+              itemIcon = 'hotel';
+            }
+
+            console.log(
+              `Creating database item for ${itemType} ${generatedTitle}: originPlaceId=${itemData.originPlaceId}, destinationPlaceId=${itemData.destinationPlaceId}`,
+            );
 
             const [newItem] = await db
               .insert(items)
               .values({
                 tripId,
-                type: 'flight',
+                type: itemType,
                 title: generatedTitle,
                 description: null,
-                icon: 'flight',
+                icon: itemIcon,
                 startDate,
                 endDate,
                 originPlaceId: itemData.originPlaceId || null,

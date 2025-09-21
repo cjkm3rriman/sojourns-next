@@ -22,9 +22,12 @@ interface UserWithOrg {
  * - Avatar images from Clerk (fresh, CDN-optimized)
  * - Falls back to full Clerk if database missing
  */
-export async function getUserDisplayData(): Promise<UserWithOrg | null> {
-  const { auth } = await import('@clerk/nextjs/server');
-  const { userId } = await auth();
+export async function getUserDisplayData(
+  request?: import('next/server').NextRequest,
+): Promise<UserWithOrg | null> {
+  const { getAuth, auth } = await import('@clerk/nextjs/server');
+  const authResult = request ? getAuth(request) : auth();
+  const { userId } = authResult;
   if (!userId) return null;
 
   try {

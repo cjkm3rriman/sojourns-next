@@ -3,7 +3,6 @@ import { getDb } from '@/lib/db';
 import { trips, users, memberships, organizations } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import type { auth as AuthType } from '@clerk/nextjs/server';
 
 export async function GET(
   request: NextRequest,
@@ -11,8 +10,8 @@ export async function GET(
 ) {
   try {
     // Get authenticated user
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const { userId } = getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -110,8 +109,8 @@ export async function PATCH(
 ) {
   try {
     // Get authenticated user
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const { userId } = getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

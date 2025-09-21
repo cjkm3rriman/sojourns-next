@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { syncUserWithOrganizations, userExistsInDatabase } from '@/lib/db/sync';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
+    const { getAuth } = await import('@clerk/nextjs/server');
+    const { userId } = getAuth(request);
 
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
