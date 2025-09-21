@@ -14,11 +14,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
+    // Get Clerk client instance
+    const client = await clerkClient();
+
     // Get user from Clerk
-    const clerkUser = await clerkClient.users.getUser(userId);
+    const clerkUser = await client.users.getUser(userId);
 
     // Get user's organizations from Clerk
-    const clerkOrgs = await clerkClient.users.getOrganizationMembershipList({
+    const clerkOrgs = await client.users.getOrganizationMembershipList({
       userId: userId,
     });
 

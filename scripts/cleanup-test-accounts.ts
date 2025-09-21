@@ -9,6 +9,10 @@ import { clerkClient } from '@clerk/nextjs/server';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
+async function getClerk() {
+  return await clerkClient();
+}
+
 // Patterns to identify test accounts
 const TEST_EMAIL_PATTERNS = [
   /test.*@/i,

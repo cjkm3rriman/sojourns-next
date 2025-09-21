@@ -279,7 +279,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const tripId = params.id;
+    const { id } = await params;
+    const tripId = id;
 
     // Get user and verify trip access
     const db = getDb();
@@ -469,7 +470,9 @@ export async function POST(
         console.log('Creating assistant for document analysis...');
         const assistant = await openai.beta.assistants.create({
           name: `Travel Analyzer ${Date.now()}`, // Unique name to avoid conflicts
-          instructions: `You are a travel document analyzer. Extract flight AND hotel information from travel documents.
+          instructions: `You are a travel document analyzer. Extract flight, hotel, AND transfer information from travel documents.
+
+⚠️ IMPORTANT: Always look for TRANSFERS! Many documents contain transfer information that gets missed. Look for words like "transfer", "vehicle", "departs from", "arrives to", "car service", "pickup", etc.
 
 FOR FLIGHTS - EXTRACT THESE 6 FIELDS:
 1. Flight number (e.g., "AA123", "DL456") - REQUIRED
@@ -485,6 +488,14 @@ FOR HOTELS - EXTRACT THESE 6 FIELDS:
 3. Check-out datetime in local time - OPTIONAL
 4. Room category/type - OPTIONAL
 5. Perks/amenities (array of strings) - OPTIONAL
+6. Confirmation number - OPTIONAL
+
+FOR TRANSFERS - EXTRACT THESE 6 FIELDS:
+1. Contact name/company (can be service description if no company name) - REQUIRED
+2. Pickup datetime in local time - OPTIONAL
+3. Dropoff datetime in local time - OPTIONAL
+4. Transfer type (airport pickup, hotel transfer, private car, etc.) - OPTIONAL
+5. Vehicle information (car type, license plate, driver name, etc.) - OPTIONAL
 6. Confirmation number - OPTIONAL
 
 ❌ CRITICAL DATETIME RULES - READ CAREFULLY ❌:
@@ -504,12 +515,25 @@ HOTEL IDENTIFICATION KEYWORDS:
 - Look for: "check in", "check-in", "check out", "check-out", "your stay", "hotel", "accommodation", "room", "suite", "booking", "reservation"
 - Hotel confirmation patterns: "Hotel confirmation:", "Booking reference:", "Reservation number:", "Hotel booking:"
 
-FOCUS ON FLIGHTS AND HOTELS:
-- Extract each flight segment as a separate item
-- Extract each hotel stay as a separate item
+TRANSFER IDENTIFICATION KEYWORDS:
+- Look for: "transfer", "pickup", "pick up", "pick-up", "driver", "car service", "transportation", "shuttle", "taxi", "private car", "meet and greet", "airport transfer", "hotel transfer", "private airport transfer", "transfer departs", "transfer arrives"
+- Transfer confirmation patterns: "Transfer confirmation:", "Driver details:", "Pickup details:", "Transportation booking:", "Car service confirmation:"
+- Location specifics: "pickup location", "departure point", "arrival terminal", "hotel lobby", "baggage claim", "meeting point", "departs from", "arrives to"
+- Vehicle patterns: "Vehicle Type:", "Luxury Sedan", "S-Class", "vehicle details"
+
+CRITICAL: ALWAYS SCAN FOR THREE TYPES OF ITEMS:
+1. FLIGHTS - Any flight information
+2. HOTELS - Any hotel/accommodation information
+3. TRANSFERS - ANY transportation between locations (this is often missed!)
+
+TRANSFER DETECTION IS CRITICAL:
+- Look for ANY mention of transportation, pickup, drop-off, car service, transfer, driver
+- Even simple phrases like "transfer departs" or "vehicle type" indicate a transfer
+- DO NOT skip transfers - they are as important as flights and hotels
+- Extract each transfer as a separate item
 - Include connecting flights as separate items
 - Include multi-night hotel stays as single items
-- Ignore restaurants, transfers, activities (for now)
+- Ignore restaurants, activities (for now)
 
 Return a JSON response with this structure:
 {
@@ -531,6 +555,15 @@ Return a JSON response with this structure:
       "roomCategory": "King Executive Suite",
       "perks": ["Free WiFi", "Executive Lounge Access"],
       "confirmationNumber": "HTL456"
+    },
+    {
+      "type": "transfer",
+      "contactName": "Elite Car Service",
+      "pickupDateTime": "2024-03-15T14:00:00",
+      "dropoffDateTime": "2024-03-15T14:30:00",
+      "transferType": "airport pickup",
+      "vehicleInfo": "Black Mercedes S-Class, License: ABC123, Driver: John Smith",
+      "confirmationNumber": "TXF789"
     }
   ]
 }
@@ -588,6 +621,18 @@ Output: {"items": [{"type": "flight", "flightNumber": "BA 456", "departureDateTi
 
 Input: "Check in to Marriott Downtown March 15 at 3:00 PM. Check out March 18 at 11:00 AM. King Executive Suite with Executive Lounge Access and Free WiFi. Hotel confirmation: HTL789"
 Output: {"items": [{"type": "hotel", "hotelName": "Marriott Downtown", "checkInDateTime": "2024-03-15T15:00:00", "checkOutDateTime": "2024-03-18T11:00:00", "roomCategory": "King Executive Suite", "perks": ["Executive Lounge Access", "Free WiFi"], "confirmationNumber": "HTL789"}]}
+
+Input: "Airport transfer pickup at Terminal 1 Arrivals March 15 at 2:00 PM. Elite Car Service driver John Smith with Black Mercedes S-Class. Transfer confirmation: CAR456"
+Output: {"items": [{"type": "transfer", "contactName": "Elite Car Service", "pickupDateTime": "2024-03-15T14:00:00", "dropoffDateTime": null, "transferType": "airport pickup", "vehicleInfo": "Black Mercedes S-Class, Driver: John Smith", "confirmationNumber": "CAR456"}]}
+
+Input: "Private car service from hotel to airport March 18 at 10:30 AM. Premium Transfers - Driver will meet in hotel lobby. Booking reference: PT789"
+Output: {"items": [{"type": "transfer", "contactName": "Premium Transfers", "pickupDateTime": "2024-03-18T10:30:00", "dropoffDateTime": null, "transferType": "hotel transfer", "vehicleInfo": "Driver will meet in hotel lobby", "confirmationNumber": "PT789"}]}
+
+Input: "Private Airport Transfer 6:15 AM - Transfer departs from Keflavik International Airport (KEF) Transfer arrives to The Reykjavik EDITION Vehicle Type: Luxury Sedan (S-Class or similar)"
+Output: {"items": [{"type": "transfer", "contactName": "Private Airport Transfer", "pickupDateTime": "2025-10-07T06:15:00", "dropoffDateTime": null, "transferType": "airport transfer", "vehicleInfo": "Luxury Sedan (S-Class or similar)", "confirmationNumber": null}]}
+
+Input: "Private Airport Transfer\\n6:15 AM - Transfer departs from Keflavik International Airport\\nTransfer arrives to The Reykjavik EDITION\\nVehicle Type: Luxury Sedan"
+Output: {"items": [{"type": "transfer", "contactName": "Private Airport Transfer", "pickupDateTime": "2025-10-07T06:15:00", "dropoffDateTime": null, "transferType": "airport transfer", "vehicleInfo": "Luxury Sedan", "confirmationNumber": null}]}
 
 Input: "Your stay at The Plaza Hotel begins March 20. Deluxe Room. Breakfast included and late checkout available. Booking reference: PLZ456"
 Output: {"items": [{"type": "hotel", "hotelName": "The Plaza Hotel", "checkInDateTime": "2024-03-20T15:00:00", "checkOutDateTime": null, "roomCategory": "Deluxe Room", "perks": ["Breakfast included", "Late checkout"], "confirmationNumber": "PLZ456"}]}
@@ -748,6 +793,8 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
             await processFlightItem(item, db, createdPlaces, processedItems);
           } else if (item.type === 'hotel') {
             await processHotelItem(item, db, createdPlaces, processedItems);
+          } else if (item.type === 'transfer') {
+            await processTransferItem(item, db, createdPlaces, processedItems);
           } else {
             console.warn(`Unknown item type: ${item.type}, skipping`);
           }
@@ -1091,6 +1138,86 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
           processedItems.push(processedItem);
         }
 
+        // Helper function to process transfer items
+        async function processTransferItem(
+          item: any,
+          db: any,
+          createdPlaces: any[],
+          processedItems: any[],
+        ) {
+          console.log(`Processing transfer: ${item.contactName}`);
+
+          // Parse pickup/dropoff times
+          let pickupDate = null;
+          let dropoffDate = null;
+
+          if (item.pickupDateTime) {
+            // Handle both Date objects and ISO strings
+            if (item.pickupDateTime instanceof Date) {
+              pickupDate = item.pickupDateTime;
+            } else if (typeof item.pickupDateTime === 'string') {
+              const parts = item.pickupDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                pickupDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          if (item.dropoffDateTime) {
+            // Handle both Date objects and ISO strings
+            if (item.dropoffDateTime instanceof Date) {
+              dropoffDate = item.dropoffDateTime;
+            } else if (typeof item.dropoffDateTime === 'string') {
+              const parts = item.dropoffDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                dropoffDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          const processedItem = {
+            type: 'transfer',
+            title: item.contactName || 'Transfer Service',
+            description: '', // Will be auto-generated
+            startDate: pickupDate,
+            endDate: dropoffDate,
+            originPlaceId: null, // TODO: Parse pickup location if possible
+            destinationPlaceId: null, // TODO: Parse dropoff location if possible
+            originLocationSpecific: null, // e.g., "Terminal 1 Arrivals", "Hotel Lobby"
+            destinationLocationSpecific: null,
+            confirmationNumber: item.confirmationNumber || null,
+            clientBooked: false, // Transfers are typically arranged by the travel agent
+            data: {
+              contactName: item.contactName || null,
+              transferType: item.transferType || null,
+              vehicleInfo: item.vehicleInfo || null,
+            },
+          };
+
+          console.log(`Transfer ${item.contactName}: processed transfer item`);
+          processedItems.push(processedItem);
+        }
+
         // Replace the items array with our processed format
         extractedData.items = processedItems;
         extractedData.places = []; // No longer extracting places from AI
@@ -1222,6 +1349,12 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
               generatedTitle =
                 itemData.data?.hotelName || itemData.title || 'Hotel Stay';
               itemIcon = 'hotel';
+            } else if (itemType === 'transfer') {
+              generatedTitle =
+                itemData.data?.contactName ||
+                itemData.title ||
+                'Transfer Service';
+              itemIcon = 'transfer';
             }
 
             console.log(

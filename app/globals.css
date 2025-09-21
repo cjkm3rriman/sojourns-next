@@ -285,10 +285,34 @@ p {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
+/* Hotel-specific timeline styling */
+.item-hotel .item-timeline {
+  background: linear-gradient(to bottom, #e8ddce, #181725);
+}
+
+.item-hotel .item-timeline::before {
+  background: #e8ddce;
+}
+
+/* Transfer-specific timeline styling */
+.item-transfer .item-timeline {
+  background: linear-gradient(to bottom, #4fb3d9, #1a365d);
+}
+
+.item-transfer .item-timeline::before {
+  background: #4fb3d9;
+}
+
 .item-content {
   flex: 1;
   min-width: 0;
   margin-top: 8px;
+  transition: opacity 0.2s ease;
+}
+
+.item-content:hover {
+  opacity: 0.3;
+  cursor: pointer;
 }
 
 /* Flight Card Styles */
@@ -338,7 +362,8 @@ p {
 .item-confirmation svg,
 .item-notes svg,
 .item-nights svg,
-.item-perks svg {
+.item-perks svg,
+.item-vehicle svg {
   opacity: 0.4;
   color: white;
 }
@@ -395,7 +420,8 @@ p {
 .item-contact,
 .item-confirmation,
 .item-nights,
-.item-perks {
+.item-perks,
+.item-vehicle {
   display: flex;
   align-items: center;
   gap: 0.4rem;

@@ -12,16 +12,21 @@ import { eq } from 'drizzle-orm';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
+async function getClerk() {
+  return await clerkClient();
+}
+
 async function cleanupOrphanedUsers() {
   console.log('🔍 Finding orphaned users in database...');
   const db = getDb();
+  const clerk = await getClerk();
   const dbUsers = await db.select().from(users);
   const orphanedUsers = [];
 
   for (const dbUser of dbUsers) {
     try {
       // Try to fetch user from Clerk
-      await clerkClient.users.getUser(dbUser.clerkUserId);
+      await clerk.users.getUser(dbUser.clerkUserId);
     } catch (error: any) {
       if (error.status === 404) {
         orphanedUsers.push(dbUser);
@@ -59,13 +64,14 @@ async function cleanupOrphanedUsers() {
 async function cleanupOrphanedOrganizations() {
   console.log('🔍 Finding orphaned organizations in database...');
   const db2 = getDb();
+  const clerk = await getClerk();
   const dbOrgs = await db2.select().from(organizations);
   const orphanedOrgs = [];
 
   for (const dbOrg of dbOrgs) {
     try {
       // Try to fetch organization from Clerk
-      await clerkClient.organizations.getOrganization({
+      await clerk.organizations.getOrganization({
         organizationId: dbOrg.clerkOrgId,
       });
     } catch (error: any) {

@@ -26,7 +26,7 @@ export async function getUserDisplayData(
   request?: import('next/server').NextRequest,
 ): Promise<UserWithOrg | null> {
   const { getAuth, auth } = await import('@clerk/nextjs/server');
-  const authResult = request ? getAuth(request) : auth();
+  const authResult = request ? getAuth(request) : await auth();
   const { userId } = authResult;
   if (!userId) return null;
 
@@ -73,10 +73,11 @@ async function getUserFromDatabase(
   // Get fresh avatar URLs from Clerk
   try {
     const { clerkClient } = await import('@clerk/nextjs/server');
+    const client = await clerkClient();
     const [clerkUser, clerkOrg] = await Promise.all([
-      clerkClient.users.getUser(clerkUserId),
+      client.users.getUser(clerkUserId),
       row.orgClerkId
-        ? clerkClient.organizations
+        ? client.organizations
             .getOrganization({
               organizationId: row.orgClerkId,
             })
@@ -121,8 +122,9 @@ async function getUserFromClerk(
 ): Promise<UserWithOrg | null> {
   try {
     const { clerkClient } = await import('@clerk/nextjs/server');
-    const user = await clerkClient.users.getUser(clerkUserId);
-    const memberships = await clerkClient.users.getOrganizationMembershipList({
+    const client = await clerkClient();
+    const user = await client.users.getUser(clerkUserId);
+    const memberships = await client.users.getOrganizationMembershipList({
       userId: clerkUserId,
       limit: 1, // Just get the first/primary org
     });

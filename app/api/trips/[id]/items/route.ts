@@ -16,7 +16,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const tripId = params.id;
+    const { id } = await params;
+    const tripId = id;
 
     // Get user and verify trip access
     const db = getDb();

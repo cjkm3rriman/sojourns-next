@@ -4,9 +4,9 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)']);
 
 // Protect everything else
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (isPublicRoute(req)) return;
-  auth().protect();
+  await auth.protect();
 });
 
 // Apply to all app routes, excluding static files and _next internals, plus root and API

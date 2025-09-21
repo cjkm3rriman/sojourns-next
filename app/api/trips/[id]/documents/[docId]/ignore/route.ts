@@ -15,8 +15,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const tripId = params.id;
-    const docId = params.docId;
+    const { id, docId } = await params;
+    const tripId = id;
     const { ignored } = await request.json();
 
     if (typeof ignored !== 'boolean') {

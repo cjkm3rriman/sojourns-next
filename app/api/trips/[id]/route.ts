@@ -16,7 +16,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const tripId = params.id;
+    const { id } = await params;
+    const tripId = id;
 
     // Get user from database to check permissions
     const db = getDb();
@@ -115,7 +116,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const tripId = params.id;
+    const { id } = await params;
+    const tripId = id;
     const body = await request.json();
 
     // Validate request body

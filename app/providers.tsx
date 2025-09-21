@@ -1,17 +1,12 @@
 'use client';
 import React from 'react';
-import dynamic from 'next/dynamic';
-
-const ClerkProviderDynamic = dynamic(
-  () => import('@clerk/nextjs').then((m) => m.ClerkProvider),
-  { ssr: false },
-);
+import { ClerkProvider } from '@clerk/nextjs';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
-    <ClerkProviderDynamic publishableKey={publishableKey}>
+    <ClerkProvider publishableKey={publishableKey} dynamic>
       {children}
-    </ClerkProviderDynamic>
+    </ClerkProvider>
   );
 }

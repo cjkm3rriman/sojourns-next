@@ -1201,7 +1201,7 @@ export default function TripDetailPage() {
                       <h1
                         style={{
                           margin: 0,
-                          fontSize: '2rem',
+                          fontSize: '1.8rem',
                         }}
                       >
                         {trip.destination || 'Somewhere Delightful'}
@@ -1580,7 +1580,7 @@ export default function TripDetailPage() {
                                       className="monospace"
                                       style={{
                                         opacity: item.confirmationNumber
-                                          ? 1
+                                          ? undefined
                                           : 0.4,
                                       }}
                                     >
@@ -1767,6 +1767,152 @@ export default function TripDetailPage() {
                                       style={{ opacity: item.notes ? 1 : 0.4 }}
                                     >
                                       {item.notes || '-'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          ) : item.type === 'transfer' ? (
+                            // Custom Transfer Layout
+                            <>
+                              <div className="item-sidebar">
+                                <div className="item-icon">
+                                  <Image
+                                    src="/images/icons/items/transfer.png"
+                                    alt="Transfer icon"
+                                    width={40}
+                                    height={40}
+                                    className="item-icon-image"
+                                  />
+                                </div>
+                                <div className="item-timeline"></div>
+                              </div>
+                              <div className="item-content">
+                                {/* Transfer Title */}
+                                <h3 className="item-title">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      data.contactName || 'Transfer Service'
+                                    );
+                                  })()}
+                                </h3>
+
+                                {/* Pickup Date and Time Info */}
+                                <div className="item-date">
+                                  <div>
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'long',
+                                          day: 'numeric',
+                                        })
+                                      : 'Date TBD'}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: '0.85rem',
+                                      opacity: 0.7,
+                                      marginTop: '0.25rem',
+                                    }}
+                                  >
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleTimeString('en-US', {
+                                          hour: 'numeric',
+                                          minute: '2-digit',
+                                          hour12: true,
+                                        })
+                                      : ''}
+                                    {item.endDate &&
+                                      ` → ${new Date(
+                                        item.endDate,
+                                      ).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true,
+                                      })}`}
+                                  </div>
+                                </div>
+
+                                {/* Transfer Details */}
+                                <div className="item-details">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      <>
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            gap: '1rem',
+                                            marginBottom: '0.75rem',
+                                          }}
+                                        >
+                                          {data.transferType && (
+                                            <div className="item-class">
+                                              <Navigation2 size={16} />
+                                              <span>{data.transferType}</span>
+                                            </div>
+                                          )}
+                                          <div className="item-passengers">
+                                            <Users size={16} />
+                                            <span>{trip?.groupSize || 1}</span>
+                                          </div>
+                                        </div>
+                                        {data.vehicleInfo && (
+                                          <div
+                                            style={{
+                                              display: 'flex',
+                                              gap: '1rem',
+                                              marginBottom: '0.75rem',
+                                            }}
+                                          >
+                                            <div className="item-vehicle">
+                                              <Briefcase size={16} />
+                                              <span>{data.vehicleInfo}</span>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
+                                  <div className="item-contact">
+                                    <Phone size={16} />
+                                    <span
+                                      style={{
+                                        opacity: item.phoneNumber ? 1 : 0.4,
+                                      }}
+                                      className="monospace"
+                                    >
+                                      {item.phoneNumber || '-'}
+                                    </span>
+                                  </div>
+                                  <div className="item-confirmation">
+                                    <Hash size={16} />
+                                    <span
+                                      className="monospace"
+                                      style={{
+                                        opacity: item.confirmationNumber
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.confirmationNumber || '-'}
+                                    </span>
+                                  </div>
+                                  <div className="item-notes">
+                                    <FileText size={16} />
+                                    <span
+                                      style={{ opacity: item.notes ? 1 : 0.4 }}
+                                    >
+                                      {item.notes || 'No notes'}
                                     </span>
                                   </div>
                                 </div>

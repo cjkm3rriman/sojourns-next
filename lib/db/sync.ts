@@ -4,7 +4,7 @@ import { eq, and } from 'drizzle-orm';
 
 async function getClerkClient() {
   const mod = await import('@clerk/nextjs/server');
-  return mod.clerkClient;
+  return await mod.clerkClient();
 }
 
 /**

@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { headers } from 'next/headers';
 import { Webhook } from 'svix';
 import { getDb } from '@/lib/db';
 import { organizations, users, memberships } from '@/lib/db/schema';
@@ -127,11 +126,10 @@ export async function POST(req: NextRequest) {
     if (!webhookSecret) {
       return new Response('Webhook not configured', { status: 500 });
     }
-    // Get headers
-    const headerPayload = await headers();
-    const svixId = headerPayload.get('svix-id');
-    const svixTimestamp = headerPayload.get('svix-timestamp');
-    const svixSignature = headerPayload.get('svix-signature');
+    // Get headers from request
+    const svixId = req.headers.get('svix-id');
+    const svixTimestamp = req.headers.get('svix-timestamp');
+    const svixSignature = req.headers.get('svix-signature');
 
     if (!svixId || !svixTimestamp || !svixSignature) {
       return new Response('Missing svix headers', { status: 400 });
