@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Dummy envs so Next.js build and Clerk provider mount cleanly
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dummy
-      CLERK_SECRET_KEY: sk_test_dummy
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2ktZHVtbXktZm9yLWJ1aWxkLXRlc3QtcHVycG9zZXMtb25seQ
+      CLERK_SECRET_KEY: sk_test_Y2ktZHVtbXktZm9yLWJ1aWxkLXRlc3QtcHVycG9zZXMtb25seQ
     steps:
       - name: Checkout
         uses: actions/checkout@v4
