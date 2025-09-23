@@ -490,13 +490,36 @@ FOR HOTELS - EXTRACT THESE 6 FIELDS:
 5. Perks/amenities (array of strings) - OPTIONAL
 6. Confirmation number - OPTIONAL
 
-FOR TRANSFERS - EXTRACT THESE 6 FIELDS:
+FOR TRANSFERS - EXTRACT THESE 8 FIELDS:
 1. Contact name/company (can be service description if no company name) - REQUIRED
 2. Pickup datetime in local time - OPTIONAL
 3. Dropoff datetime in local time - OPTIONAL
-4. Transfer type (airport pickup, hotel transfer, private car, etc.) - OPTIONAL
-5. Vehicle information (car type, license plate, driver name, etc.) - OPTIONAL
-6. Confirmation number - OPTIONAL
+4. Service type (Private or Group - capitalize first letter) - OPTIONAL
+5. Vehicle type (sedan, SUV, luxury car, van, shuttle, etc.) - OPTIONAL
+6. Pickup location reference (airport code, hotel name, or description if connecting to flights/hotels) - OPTIONAL
+7. Dropoff location reference (airport code, hotel name, or description if connecting to flights/hotels) - OPTIONAL
+8. Confirmation number - OPTIONAL
+
+FOR ACTIVITIES - EXTRACT THESE 9 FIELDS:
+1. Activity name (full name from document) - REQUIRED
+2. Activity title (create shortest possible title that travelers would understand, 5-word max, utilitarian) - REQUIRED
+3. Start datetime in local time - OPTIONAL
+4. End datetime in local time - OPTIONAL
+5. Contact name/operator/company - OPTIONAL
+6. Service type (Private or Group - capitalize first letter) - OPTIONAL
+7. Activity type (see categories below) - OPTIONAL
+8. Vehicle type (if transportation included) - OPTIONAL
+9. Confirmation number - OPTIONAL
+
+FOR RESTAURANTS - EXTRACT THESE 8 FIELDS:
+1. Restaurant name (full name from document) - REQUIRED
+2. Reservation datetime in local time - OPTIONAL
+3. End time (if specified) - OPTIONAL
+4. Contact name/restaurant contact - OPTIONAL
+5. Cuisine type - OPTIONAL
+6. Party size - OPTIONAL
+7. Confirmation number OR name booked under - OPTIONAL
+8. Dietary restrictions/special requests - OPTIONAL
 
 ❌ CRITICAL DATETIME RULES - READ CAREFULLY ❌:
 - ONLY extract times that are EXPLICITLY stated in the document
@@ -519,12 +542,55 @@ TRANSFER IDENTIFICATION KEYWORDS:
 - Look for: "transfer", "pickup", "pick up", "pick-up", "driver", "car service", "transportation", "shuttle", "taxi", "private car", "meet and greet", "airport transfer", "hotel transfer", "private airport transfer", "transfer departs", "transfer arrives"
 - Transfer confirmation patterns: "Transfer confirmation:", "Driver details:", "Pickup details:", "Transportation booking:", "Car service confirmation:"
 - Location specifics: "pickup location", "departure point", "arrival terminal", "hotel lobby", "baggage claim", "meeting point", "departs from", "arrives to"
-- Vehicle patterns: "Vehicle Type:", "Luxury Sedan", "S-Class", "vehicle details"
+- Vehicle type patterns: "Vehicle Type:", "Luxury Sedan", "S-Class", "SUV", "Van", "Minibus", "Shuttle", "Limousine", "Executive Car", "Standard Car"
+- Service type patterns: "private transfer", "private car", "private service", "group transfer", "shared transfer", "shuttle service", "group shuttle", "shared ride"
 
-CRITICAL: ALWAYS SCAN FOR THREE TYPES OF ITEMS:
+TRANSFER LOCATION MATCHING:
+- CRITICAL: Look for transfers that connect to flights and hotels mentioned in the same document
+- Airport connection patterns: "transfer from airport", "pickup at [airport code]", "departs from [airport name]", "airport to hotel"
+- Hotel connection patterns: "transfer from hotel", "pickup at [hotel name]", "departs from [hotel]", "hotel to airport"
+- If transfer mentions specific airport codes (JFK, LAX, etc.) or hotel names that appear in flights/hotels, note the connection
+- Look for timing that suggests transfer connects items: transfer after flight arrival, transfer before flight departure, transfer at hotel checkout/checkin time
+
+ACTIVITY TYPE CATEGORIES (choose the best match):
+- Architecture: Building tours, historic sites, architectural experiences
+- Art: Art galleries, studios, exhibitions, artistic experiences
+- Beauty: Spa treatments, beauty experiences, cosmetic services
+- Cooking: Cooking classes, culinary workshops, kitchen experiences
+- Cultural tours: Heritage sites, cultural experiences, local traditions
+- Dining: Restaurant experiences, special meals, fine dining
+- Flying: Helicopter tours, scenic flights, aviation experiences
+- Food tours: Food walking tours, market visits, culinary exploration
+- Galleries: Art galleries, exhibitions, art spaces
+- Landmarks: Famous sites, monuments, iconic locations
+- Museums: Museum visits, exhibitions, cultural institutions
+- Outdoors: Nature tours, hiking, ice caves, natural sites, outdoor adventures
+- Performances: Shows, theater, concerts, entertainment
+- Shopping & fashion: Shopping tours, fashion experiences, retail
+- Tastings: Wine, food, local product tastings, sampling experiences
+- Water sports: Swimming, thermal baths, water activities, aquatic experiences
+- Wellness: Spa, thermal baths, relaxation, health experiences
+- Wildlife: Animal watching, safaris, nature observation
+- Workouts: Fitness activities, outdoor sports, physical activities
+
+ACTIVITY IDENTIFICATION KEYWORDS:
+- Look for: "tour", "experience", "admission", "visit", "class", "workshop", "activity", "excursion", "sightseeing", "exploration", "adventure"
+- Activity confirmation patterns: "Activity confirmation:", "Tour booking:", "Experience reference:", "Admission ticket:", "Booking confirmation:"
+- Time patterns: duration indicated (e.g., "2:30 PM - 5:30 PM", "Full Day", "Half Day", "3 hours")
+- Location patterns: specific attractions, landmarks, or activity venues mentioned
+
+RESTAURANT IDENTIFICATION KEYWORDS:
+- Look for: "dinner", "lunch", "breakfast", "restaurant", "dining", "reservation", "table", "cuisine", "menu", "chef", "bistro", "cafe", "brasserie"
+- Restaurant confirmation patterns: "Dinner reservation:", "Table booking:", "Restaurant confirmation:", "Booked under:", "Reservation for:"
+- Time patterns: meal times (e.g., "7:30 PM dinner", "12:30 PM lunch", "8:00 AM breakfast")
+- Location patterns: restaurant names, dining venues, specific cuisines mentioned
+
+CRITICAL: ALWAYS SCAN FOR FIVE TYPES OF ITEMS:
 1. FLIGHTS - Any flight information
 2. HOTELS - Any hotel/accommodation information
 3. TRANSFERS - ANY transportation between locations (this is often missed!)
+4. ACTIVITIES - Tours, experiences, admissions, classes, or any structured activities
+5. RESTAURANTS - Dining reservations, meals, restaurant bookings
 
 TRANSFER DETECTION IS CRITICAL:
 - Look for ANY mention of transportation, pickup, drop-off, car service, transfer, driver
@@ -561,9 +627,23 @@ Return a JSON response with this structure:
       "contactName": "Elite Car Service",
       "pickupDateTime": "2024-03-15T14:00:00",
       "dropoffDateTime": "2024-03-15T14:30:00",
-      "transferType": "airport pickup",
-      "vehicleInfo": "Black Mercedes S-Class, License: ABC123, Driver: John Smith",
+      "service": "Private",
+      "vehicleType": "Luxury Sedan",
+      "pickupLocation": "JFK",
+      "dropoffLocation": "Marriott Downtown",
       "confirmationNumber": "TXF789"
+    },
+    {
+      "type": "activity",
+      "activityName": "Full Day Tour Wonders of the South Coast & Katla Ice Cave",
+      "activityTitle": "South Coast Ice Cave Tour",
+      "startDateTime": "2024-03-16T09:00:00",
+      "endDateTime": null,
+      "contactName": "Iceland Tours",
+      "service": "Group",
+      "activityType": "Outdoors",
+      "vehicleType": "Luxury SUV",
+      "confirmationNumber": "ACT123"
     }
   ]
 }
@@ -577,7 +657,7 @@ RULES:
 - ❌ NEVER infer one time from the other - if only arrival time is shown, departureDateTime must be null
 - ❌ NEVER infer one time from the other - if only departure time is shown, arrivalDateTime must be null
 - ❌ NEVER set both times to the same value unless the document explicitly shows both the same time
-- ✅ Only extract times you are confident about - it's better to leave null than guess
+- ✅ Only extract flight dates and times you are confident about - it's better to leave null than guess. Ok to be less strict with hotels, transfers, activites, restaurnats
 - ✅ If you see only "arrives 6:15 AM" → departureDateTime: null, arrivalDateTime: "06:15:00"
 - ✅ If you see only "departs 7:30 PM" → departureDateTime: "19:30:00", arrivalDateTime: null
 - Set clientBooked to true ONLY if you see explicit phrases like "own arrangement", "(own arrangement)", "booked by client", "booked by guest", "client booking" - DO NOT GUESS, set to false if uncertain
@@ -586,6 +666,7 @@ RULES:
 - Normalize class values to: "first", "business", "premium economy", "economy" (use these exact strings)
 - Set class to null if no class information is clearly stated - DO NOT GUESS the class
 - For confirmation numbers, look for: "PNR:", "Confirmation:", "Conf:", "Reference:", "Ref:", "Booking:", "Record Locator:", "Reservation:", "Airline confirmation:", "Flight confirmation:", "Hotel confirmation:", "Hotel booking:", "Booking reference:", "Reservation number:", "Confirmation code:", "Confirmation #:", or alphanumeric codes near these terms
+- For transfer service type: Look for keywords like "private", "group", "shared", "shuttle" to determine if service is "Private" or "Group" (capitalize first letter). Default to "Private" if unclear
 - Extract confirmation numbers as they appear (preserve original format and case)
 - IMPORTANT: If only ONE confirmation number appears in the document, apply it to ALL flights extracted from that document (outbound and return flights often share the same confirmation)
 - If multiple different confirmation numbers exist, match them to their specific flights
@@ -623,16 +704,16 @@ Input: "Check in to Marriott Downtown March 15 at 3:00 PM. Check out March 18 at
 Output: {"items": [{"type": "hotel", "hotelName": "Marriott Downtown", "checkInDateTime": "2024-03-15T15:00:00", "checkOutDateTime": "2024-03-18T11:00:00", "roomCategory": "King Executive Suite", "perks": ["Executive Lounge Access", "Free WiFi"], "confirmationNumber": "HTL789"}]}
 
 Input: "Airport transfer pickup at Terminal 1 Arrivals March 15 at 2:00 PM. Elite Car Service driver John Smith with Black Mercedes S-Class. Transfer confirmation: CAR456"
-Output: {"items": [{"type": "transfer", "contactName": "Elite Car Service", "pickupDateTime": "2024-03-15T14:00:00", "dropoffDateTime": null, "transferType": "airport pickup", "vehicleInfo": "Black Mercedes S-Class, Driver: John Smith", "confirmationNumber": "CAR456"}]}
+Output: {"items": [{"type": "transfer", "contactName": "Elite Car Service", "pickupDateTime": "2024-03-15T14:00:00", "dropoffDateTime": null, "service": "private", "vehicleType": "Luxury Sedan", "pickupLocation": "Airport", "dropoffLocation": null, "confirmationNumber": "CAR456"}]}
 
 Input: "Private car service from hotel to airport March 18 at 10:30 AM. Premium Transfers - Driver will meet in hotel lobby. Booking reference: PT789"
-Output: {"items": [{"type": "transfer", "contactName": "Premium Transfers", "pickupDateTime": "2024-03-18T10:30:00", "dropoffDateTime": null, "transferType": "hotel transfer", "vehicleInfo": "Driver will meet in hotel lobby", "confirmationNumber": "PT789"}]}
+Output: {"items": [{"type": "transfer", "contactName": "Premium Transfers", "pickupDateTime": "2024-03-18T10:30:00", "dropoffDateTime": null, "service": "private", "vehicleType": "Standard Car", "pickupLocation": "Hotel", "dropoffLocation": "Airport", "confirmationNumber": "PT789"}]}
 
 Input: "Private Airport Transfer 6:15 AM - Transfer departs from Keflavik International Airport (KEF) Transfer arrives to The Reykjavik EDITION Vehicle Type: Luxury Sedan (S-Class or similar)"
-Output: {"items": [{"type": "transfer", "contactName": "Private Airport Transfer", "pickupDateTime": "2025-10-07T06:15:00", "dropoffDateTime": null, "transferType": "airport transfer", "vehicleInfo": "Luxury Sedan (S-Class or similar)", "confirmationNumber": null}]}
+Output: {"items": [{"type": "transfer", "contactName": "Private Airport Transfer", "pickupDateTime": "2025-10-07T06:15:00", "dropoffDateTime": null, "service": "private", "vehicleType": "Luxury Sedan", "pickupLocation": "KEF", "dropoffLocation": "The Reykjavik EDITION", "confirmationNumber": null}]}
 
 Input: "Private Airport Transfer\\n6:15 AM - Transfer departs from Keflavik International Airport\\nTransfer arrives to The Reykjavik EDITION\\nVehicle Type: Luxury Sedan"
-Output: {"items": [{"type": "transfer", "contactName": "Private Airport Transfer", "pickupDateTime": "2025-10-07T06:15:00", "dropoffDateTime": null, "transferType": "airport transfer", "vehicleInfo": "Luxury Sedan", "confirmationNumber": null}]}
+Output: {"items": [{"type": "transfer", "contactName": "Private Airport Transfer", "pickupDateTime": "2025-10-07T06:15:00", "dropoffDateTime": null, "service": "private", "vehicleType": "Luxury Sedan", "pickupLocation": "Keflavik International Airport", "dropoffLocation": "The Reykjavik EDITION", "confirmationNumber": null}]}
 
 Input: "Your stay at The Plaza Hotel begins March 20. Deluxe Room. Breakfast included and late checkout available. Booking reference: PLZ456"
 Output: {"items": [{"type": "hotel", "hotelName": "The Plaza Hotel", "checkInDateTime": "2024-03-20T15:00:00", "checkOutDateTime": null, "roomCategory": "Deluxe Room", "perks": ["Breakfast included", "Late checkout"], "confirmationNumber": "PLZ456"}]}
@@ -647,8 +728,29 @@ Input: "Aer Lingus EI110 JFK to Shannon 7:30 PM - Airline confirmation: 24IT7W"
 Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTime": "2024-03-15T19:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}]}
 
 Input: "Outbound: Flight EI110 JFK to Shannon March 19 7:30 PM. Return: Flight EI111 Shannon to JFK March 25 11:00 AM. Airline confirmation: 24IT7W"
-Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTime": "2024-03-19T19:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}, {"type": "flight", "flightNumber": "EI 111", "departureDateTime": "2024-03-25T11:00:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}]}`,
-          model: 'gpt-4o',
+Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTime": "2024-03-19T19:30:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}, {"type": "flight", "flightNumber": "EI 111", "departureDateTime": "2024-03-25T11:00:00", "arrivalDateTime": null, "clientBooked": false, "class": null, "confirmationNumber": "24IT7W"}]}
+
+Input: "Shared shuttle service from airport to hotel March 15 at 3:30 PM. SuperShuttle group transfer. Booking reference: SHU123"
+Output: {"items": [{"type": "transfer", "contactName": "SuperShuttle", "pickupDateTime": "2024-03-15T15:30:00", "dropoffDateTime": null, "service": "Group", "vehicleType": "Shuttle", "pickupLocation": "Airport", "dropoffLocation": "Hotel", "confirmationNumber": "SHU123"}]}
+
+Input: "9:00 AM · Full Day Tour Wonders of the South Coast & Katla Ice Cave. Vehicle type: Luxury SUV. This day will involve increased driving time due to the distance being covered."
+Output: {"items": [{"type": "activity", "activityName": "Full Day Tour Wonders of the South Coast & Katla Ice Cave", "activityTitle": "South Coast Ice Cave Tour", "startDateTime": "2024-03-15T09:00:00", "endDateTime": null, "contactName": null, "service": "Group", "activityType": "Outdoors", "vehicleType": "Luxury SUV", "confirmationNumber": null}]}
+
+Input: "2:30 PM - 5:30 PM · Scheduled Katla Ice Cave Tour by Super Jeep. Participants should feel confident walking on uneven surfaces. Minimum age is 6 years old."
+Output: {"items": [{"type": "activity", "activityName": "Katla Ice Cave Tour by Super Jeep", "activityTitle": "Katla Ice Cave Adventure", "startDateTime": "2024-03-15T14:30:00", "endDateTime": "2024-03-15T17:30:00", "contactName": null, "service": "Group", "activityType": "Outdoors", "vehicleType": "Super Jeep", "confirmationNumber": null}]}
+
+Input: "11:30 AM - 2:30 PM · Private Reykjavik Food Tour (tastings included). Food & Wine Tours Iceland - Tour confirmation: FWT456"
+Output: {"items": [{"type": "activity", "activityName": "Private Reykjavik Food Tour", "activityTitle": "Reykjavik Private Food Tour", "startDateTime": "2024-03-15T11:30:00", "endDateTime": "2024-03-15T14:30:00", "contactName": "Food & Wine Tours Iceland", "service": "Private", "activityType": "Food tours", "vehicleType": null, "confirmationNumber": "FWT456"}]}
+
+Input: "2:00 PM - 5:30 PM · Blue Lagoon - 2 x Signature Admissions. Please remember to bring swimwear. Booking reference: BL789"
+Output: {"items": [{"type": "activity", "activityName": "Blue Lagoon Signature Admissions", "activityTitle": "Blue Lagoon Spa Experience", "startDateTime": "2024-03-15T14:00:00", "endDateTime": "2024-03-15T17:30:00", "contactName": "Blue Lagoon", "service": "Group", "activityType": "Wellness", "vehicleType": null, "confirmationNumber": "BL789"}]}
+
+Input: "7:30 PM dinner reservation at Le Bernardin. Table for 2. Booked under Smith. French cuisine, chef's tasting menu."
+Output: {"items": [{"type": "restaurant", "restaurantName": "Le Bernardin", "reservationDateTime": "2024-03-15T19:30:00", "endDateTime": null, "contactName": null, "cuisineType": "French", "partySize": "2", "confirmationNumber": "Smith", "dietaryRequests": "chef's tasting menu"}]}
+
+Input: "12:30 PM lunch at Osteria Francescana. Party of 4. Italian restaurant. Confirmation: OF4567. Vegetarian options requested."
+Output: {"items": [{"type": "restaurant", "restaurantName": "Osteria Francescana", "reservationDateTime": "2024-03-15T12:30:00", "endDateTime": null, "contactName": null, "cuisineType": "Italian", "partySize": "4", "confirmationNumber": "OF4567", "dietaryRequests": "Vegetarian options"}]}`,
+          model: 'gpt-5',
           tools: [{ type: 'file_search' }],
         });
 
@@ -659,7 +761,7 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
           messages: [
             {
               role: 'user',
-              content: `Extract flight and hotel information from "${doc.originalName}". Return JSON with flights (flight number, departure/arrival times, class, confirmation) and hotels (hotel name, check-in/out times, room category, perks, confirmation).`,
+              content: `Extract flight, hotel, transfer, activity, AND restaurant information from "${doc.originalName}". Return JSON with flights (flight number, departure/arrival times, class, confirmation), hotels (hotel name, check-in/out times, room category, perks, confirmation), transfers (contact name, pickup/dropoff times, transfer type, vehicle info, confirmation), activities (activity name, start/end times, activity type, contact, service, confirmation), and restaurants (restaurant name, reservation times, cuisine type, party size, confirmation).`,
               attachments: [
                 {
                   file_id: openaiFileId,
@@ -795,6 +897,15 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
             await processHotelItem(item, db, createdPlaces, processedItems);
           } else if (item.type === 'transfer') {
             await processTransferItem(item, db, createdPlaces, processedItems);
+          } else if (item.type === 'activity') {
+            await processActivityItem(item, db, createdPlaces, processedItems);
+          } else if (item.type === 'restaurant') {
+            await processRestaurantItem(
+              item,
+              db,
+              createdPlaces,
+              processedItems,
+            );
           } else {
             console.warn(`Unknown item type: ${item.type}, skipping`);
           }
@@ -1209,14 +1320,660 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
             clientBooked: false, // Transfers are typically arranged by the travel agent
             data: {
               contactName: item.contactName || null,
-              transferType: item.transferType || null,
-              vehicleInfo: item.vehicleInfo || null,
+              service: item.service || null,
+              vehicleType: item.vehicleType || null,
+              pickupLocation: item.pickupLocation || null,
+              dropoffLocation: item.dropoffLocation || null,
             },
           };
 
           console.log(`Transfer ${item.contactName}: processed transfer item`);
           processedItems.push(processedItem);
         }
+
+        // Helper function to process activity items
+        async function processActivityItem(
+          item: any,
+          db: any,
+          createdPlaces: any[],
+          processedItems: any[],
+        ) {
+          console.log(`Processing activity: ${item.activityName}`);
+
+          // Parse start/end times
+          let startDate = null;
+          let endDate = null;
+
+          if (item.startDateTime) {
+            // Handle both Date objects and ISO strings
+            if (item.startDateTime instanceof Date) {
+              startDate = item.startDateTime;
+            } else if (typeof item.startDateTime === 'string') {
+              const parts = item.startDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                startDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          if (item.endDateTime) {
+            // Handle both Date objects and ISO strings
+            if (item.endDateTime instanceof Date) {
+              endDate = item.endDateTime;
+            } else if (typeof item.endDateTime === 'string') {
+              const parts = item.endDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                endDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          // Generate 5-word title from activity name
+          const generateTitle = (activityName: string): string => {
+            if (!activityName) return 'Activity';
+
+            const words = activityName
+              .split(' ')
+              .filter((word) => word.length > 0);
+
+            // Remove common words to focus on key terms
+            const stopWords = [
+              'the',
+              'a',
+              'an',
+              'and',
+              'or',
+              'but',
+              'in',
+              'on',
+              'at',
+              'to',
+              'for',
+              'of',
+              'with',
+              'by',
+              'from',
+              '&',
+              '-',
+            ];
+            const filteredWords = words.filter(
+              (word) =>
+                !stopWords.includes(word.toLowerCase()) && word.length > 1,
+            );
+
+            // Take first 5 meaningful words
+            const titleWords = filteredWords.slice(0, 5);
+
+            // If we don't have enough words, fall back to original words
+            if (titleWords.length < 3) {
+              return words.slice(0, 5).join(' ');
+            }
+
+            return titleWords.join(' ');
+          };
+
+          const processedItem = {
+            type: 'activity',
+            title: item.activityTitle || generateTitle(item.activityName || ''),
+            description: item.activityName || '',
+            info: '', // Will be populated from activity notes/requirements
+            startDate: startDate,
+            endDate: endDate,
+            originPlaceId: null, // TODO: Parse pickup location if possible
+            destinationPlaceId: null, // TODO: Parse dropoff location if possible
+            originLocationSpecific: null,
+            destinationLocationSpecific: null,
+            confirmationNumber: item.confirmationNumber || null,
+            clientBooked: false, // Activities are typically arranged by the travel agent
+            data: {
+              contactName: item.contactName || null,
+              service: item.service || null,
+              activityType: item.activityType || null,
+              vehicleType: item.vehicleType || null,
+              placesVisited: [], // TODO: Extract places from activity name/description
+            },
+          };
+
+          console.log(`Activity ${item.activityName}: processed activity item`);
+          processedItems.push(processedItem);
+        }
+
+        // Helper function to process restaurant items
+        async function processRestaurantItem(
+          item: any,
+          db: any,
+          createdPlaces: any[],
+          processedItems: any[],
+        ) {
+          console.log(`Processing restaurant: ${item.restaurantName}`);
+
+          // Parse start/end times
+          let startDate = null;
+          let endDate = null;
+
+          if (item.reservationDateTime) {
+            if (item.reservationDateTime instanceof Date) {
+              startDate = item.reservationDateTime;
+            } else if (typeof item.reservationDateTime === 'string') {
+              const parts = item.reservationDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                startDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          if (item.endDateTime) {
+            if (item.endDateTime instanceof Date) {
+              endDate = item.endDateTime;
+            } else if (typeof item.endDateTime === 'string') {
+              const parts = item.endDateTime.match(
+                /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
+              );
+              if (parts) {
+                endDate = new Date(
+                  Date.UTC(
+                    parseInt(parts[1]), // year
+                    parseInt(parts[2]) - 1, // month (0-indexed)
+                    parseInt(parts[3]), // day
+                    parseInt(parts[4]), // hour
+                    parseInt(parts[5]), // minute
+                  ),
+                );
+              }
+            }
+          }
+
+          const processedItem = {
+            type: 'restaurant',
+            title: item.restaurantName || 'Restaurant',
+            description: item.restaurantName || '',
+            info: '', // Will be populated from dietary restrictions/special requests
+            startDate: startDate,
+            endDate: endDate,
+            originPlaceId: null, // TODO: Parse restaurant location if possible
+            destinationPlaceId: null,
+            originLocationSpecific: null, // Table details, private dining room, etc.
+            destinationLocationSpecific: null,
+            confirmationNumber: item.confirmationNumber || null,
+            clientBooked: false, // Restaurants are typically arranged by the travel agent
+            data: {
+              restaurantName: item.restaurantName || null,
+              contactName: item.contactName || null,
+              cuisineType: item.cuisineType || null,
+              partySize: item.partySize || null,
+              dietaryRequests: item.dietaryRequests || null,
+            },
+          };
+
+          console.log(
+            `Restaurant ${item.restaurantName}: processed restaurant item`,
+          );
+          processedItems.push(processedItem);
+        }
+
+        // Helper function to link transfer places to flights and hotels
+        async function linkTransferPlaces(processedItems: any[]) {
+          const flights = processedItems.filter(
+            (item) => item.type === 'flight',
+          );
+          const hotels = processedItems.filter((item) => item.type === 'hotel');
+          const transfers = processedItems.filter(
+            (item) => item.type === 'transfer',
+          );
+
+          console.log(
+            `🚗 TRANSFER LINKING: Processing ${transfers.length} transfers with ${flights.length} flights and ${hotels.length} hotels`,
+          );
+
+          for (const transfer of transfers) {
+            let originPlaceId = null;
+            let destinationPlaceId = null;
+
+            const transferData =
+              typeof transfer.data === 'string'
+                ? JSON.parse(transfer.data || '{}')
+                : transfer.data || {};
+            const pickupLocation = transferData.pickupLocation;
+            const dropoffLocation = transferData.dropoffLocation;
+
+            console.log(
+              `\n📍 Processing transfer: ${transferData.contactName}`,
+            );
+            console.log(`   AI extracted pickupLocation: "${pickupLocation}"`);
+            console.log(
+              `   AI extracted dropoffLocation: "${dropoffLocation}"`,
+            );
+            console.log(`   Transfer time: ${transfer.startDate}`);
+
+            // Try to match pickup location
+            if (pickupLocation) {
+              console.log(
+                `🔍 Attempting pickup location match for: "${pickupLocation}"`,
+              );
+              originPlaceId = await matchLocationToPlace(
+                pickupLocation,
+                flights,
+                hotels,
+                transfer.startDate,
+                'pickup',
+              );
+              console.log(
+                `   ✅ Pickup match result: ${originPlaceId ? `placeId=${originPlaceId}` : 'NO MATCH'}`,
+              );
+            } else {
+              console.log(`⚠️  No pickup location provided by AI`);
+            }
+
+            // Try to match dropoff location
+            if (dropoffLocation) {
+              console.log(
+                `🔍 Attempting dropoff location match for: "${dropoffLocation}"`,
+              );
+              destinationPlaceId = await matchLocationToPlace(
+                dropoffLocation,
+                flights,
+                hotels,
+                transfer.endDate || transfer.startDate,
+                'dropoff',
+              );
+              console.log(
+                `   ✅ Dropoff match result: ${destinationPlaceId ? `placeId=${destinationPlaceId}` : 'NO MATCH'}`,
+              );
+            } else {
+              console.log(`⚠️  No dropoff location provided by AI`);
+            }
+
+            // If no explicit location data, try temporal matching
+            if (!originPlaceId && !destinationPlaceId && transfer.startDate) {
+              console.log(
+                `🕐 No explicit matches found, trying temporal matching...`,
+              );
+              const temporalMatches = findTemporalMatches(transfer, [
+                ...flights,
+                ...hotels,
+              ]);
+              originPlaceId = temporalMatches.originPlaceId;
+              destinationPlaceId = temporalMatches.destinationPlaceId;
+              console.log(
+                `   ⏰ Temporal match results: origin=${originPlaceId}, destination=${destinationPlaceId}`,
+              );
+            }
+
+            // Update transfer with matched place IDs
+            if (originPlaceId || destinationPlaceId) {
+              transfer.originPlaceId = originPlaceId;
+              transfer.destinationPlaceId = destinationPlaceId;
+              console.log(
+                `✅ FINAL: Linked transfer "${transferData.contactName}": origin=${originPlaceId}, destination=${destinationPlaceId}`,
+              );
+            } else {
+              console.log(
+                `❌ FINAL: No place links found for transfer "${transferData.contactName}"`,
+              );
+            }
+          }
+
+          console.log(`🚗 TRANSFER LINKING: Complete\n`);
+        }
+
+        // Helper function to match location references to actual places
+        async function matchLocationToPlace(
+          locationRef: string,
+          flights: any[],
+          hotels: any[],
+          transferTime: Date,
+          direction: 'pickup' | 'dropoff',
+        ) {
+          if (!locationRef) return null;
+
+          console.log(
+            `    🎯 matchLocationToPlace: "${locationRef}" (${direction})`,
+          );
+          console.log(
+            `       Available flights: ${flights.length}, hotels: ${hotels.length}`,
+          );
+
+          const locationLower = locationRef.toLowerCase();
+
+          // Try to match airport codes or names
+          console.log(
+            `    🛫 Checking ${flights.length} flights for airport matches...`,
+          );
+
+          // Collect all matching flights with their match details and timing
+          const matchingFlights: Array<{
+            flight: any;
+            placeId: string;
+            matchType: string;
+            timeDiff: number;
+            isAfter: boolean;
+          }> = [];
+
+          for (const flight of flights) {
+            const flightStartTime = flight.startDate
+              ? new Date(flight.startDate).getTime()
+              : null;
+            const transferStartTime = transferTime
+              ? new Date(transferTime).getTime()
+              : null;
+            const timeDiff =
+              flightStartTime && transferStartTime
+                ? Math.abs(flightStartTime - transferStartTime)
+                : Infinity;
+            const isAfter =
+              flightStartTime && transferStartTime
+                ? flightStartTime > transferStartTime
+                : false;
+
+            console.log(
+              `       ✈️  Flight ${flight.title || 'Unknown'} (${flight.startDate}): origin="${flight.originPlaceName}" destination="${flight.destinationPlaceName}"`,
+            );
+            console.log(
+              `          Time diff: ${timeDiff}ms, Is after transfer: ${isAfter}`,
+            );
+
+            // Check for airport code matches (e.g., "JFK", "KEF")
+            if (locationRef.length === 3 && locationRef.match(/^[A-Z]{3}$/)) {
+              // Look for IATA code in flight data
+              const flightData =
+                typeof flight.data === 'string'
+                  ? JSON.parse(flight.data || '{}')
+                  : flight.data || {};
+              if (flightData.carrierCode) {
+                if (direction === 'pickup') {
+                  matchingFlights.push({
+                    flight,
+                    placeId: flight.destinationPlaceId,
+                    matchType: 'IATA code pickup to destination',
+                    timeDiff,
+                    isAfter,
+                  });
+                } else {
+                  matchingFlights.push({
+                    flight,
+                    placeId: flight.originPlaceId,
+                    matchType: 'IATA code dropoff to origin',
+                    timeDiff,
+                    isAfter,
+                  });
+                }
+              }
+            }
+
+            // Check for specific airport name matches (more precise matching)
+            if (
+              locationLower.includes('airport') ||
+              locationLower.includes('international')
+            ) {
+              // Try to match specific airport names to avoid wrong airport selection
+              const originAirport = (
+                flight.originPlaceName ||
+                flight.originPlaceCity ||
+                ''
+              ).toLowerCase();
+              const destinationAirport = (
+                flight.destinationPlaceName ||
+                flight.destinationPlaceCity ||
+                ''
+              ).toLowerCase();
+
+              console.log(`          Origin airport: "${originAirport}"`);
+              console.log(
+                `          Destination airport: "${destinationAirport}"`,
+              );
+
+              // Check if the location reference matches the airport names
+              const originMatch =
+                (originAirport.includes('airport') &&
+                  locationLower.includes('keflavik') &&
+                  originAirport.includes('keflavik')) ||
+                (locationLower.includes('reykjavik') &&
+                  originAirport.includes('reykjavik')) ||
+                (originAirport.length > 0 &&
+                  locationLower.includes(originAirport.split(' ')[0]));
+
+              const destinationMatch =
+                (destinationAirport.includes('airport') &&
+                  locationLower.includes('keflavik') &&
+                  destinationAirport.includes('keflavik')) ||
+                (locationLower.includes('reykjavik') &&
+                  destinationAirport.includes('reykjavik')) ||
+                (destinationAirport.length > 0 &&
+                  locationLower.includes(destinationAirport.split(' ')[0]));
+
+              console.log(
+                `          Match results: originMatch=${originMatch}, destinationMatch=${destinationMatch}`,
+              );
+
+              if (direction === 'pickup') {
+                // For pickup, prefer destination airport if it matches
+                if (destinationMatch) {
+                  matchingFlights.push({
+                    flight,
+                    placeId: flight.destinationPlaceId,
+                    matchType: 'Name match pickup to destination',
+                    timeDiff,
+                    isAfter,
+                  });
+                } else if (originMatch) {
+                  matchingFlights.push({
+                    flight,
+                    placeId: flight.originPlaceId,
+                    matchType: 'Name match pickup to origin',
+                    timeDiff,
+                    isAfter,
+                  });
+                }
+              } else {
+                // For dropoff, prefer origin airport if it matches
+                if (originMatch) {
+                  matchingFlights.push({
+                    flight,
+                    placeId: flight.originPlaceId,
+                    matchType: 'Name match dropoff to origin',
+                    timeDiff,
+                    isAfter,
+                  });
+                } else if (destinationMatch) {
+                  matchingFlights.push({
+                    flight,
+                    placeId: flight.destinationPlaceId,
+                    matchType: 'Name match dropoff to destination',
+                    timeDiff,
+                    isAfter,
+                  });
+                }
+              }
+            }
+          }
+
+          // Select the best matching flight based on timing
+          if (matchingFlights.length > 0) {
+            console.log(
+              `    📊 Found ${matchingFlights.length} matching flights, selecting best by timing...`,
+            );
+
+            // Sort by: 1) flights after transfer first, 2) closest time difference
+            const sortedMatches = matchingFlights.sort((a, b) => {
+              // Prioritize flights that occur after the transfer
+              if (a.isAfter !== b.isAfter) {
+                return b.isAfter ? 1 : -1; // b.isAfter comes first
+              }
+              // Then by closest time difference
+              return a.timeDiff - b.timeDiff;
+            });
+
+            const bestMatch = sortedMatches[0];
+            console.log(
+              `    ✅ BEST MATCH: ${bestMatch.matchType} - placeId=${bestMatch.placeId}`,
+            );
+            console.log(
+              `       Flight occurs ${bestMatch.isAfter ? 'after' : 'before'} transfer, time diff: ${Math.round(bestMatch.timeDiff / (1000 * 60))} minutes`,
+            );
+
+            return bestMatch.placeId;
+          } else {
+            console.log(`    ❌ No airport matches found`);
+          }
+
+          // Try to match hotel names
+          console.log(`    🏨 Checking ${hotels.length} hotels for matches...`);
+          for (const hotel of hotels) {
+            const hotelData =
+              typeof hotel.data === 'string'
+                ? JSON.parse(hotel.data || '{}')
+                : hotel.data || {};
+            const hotelName = hotelData.hotelName || hotel.title || '';
+
+            console.log(
+              `       🏨 Hotel: "${hotelName}" (placeId=${hotel.originPlaceId})`,
+            );
+
+            const nameMatch =
+              hotelName &&
+              (locationLower.includes(hotelName.toLowerCase()) ||
+                hotelName.toLowerCase().includes(locationLower));
+            const genericMatch =
+              locationLower.includes('hotel') || locationLower === 'hotel';
+
+            console.log(
+              `          Name match: ${nameMatch}, Generic match: ${genericMatch}`,
+            );
+
+            if (hotelName && (nameMatch || genericMatch)) {
+              console.log(
+                `          ✅ HOTEL MATCH: Using placeId=${hotel.originPlaceId}`,
+              );
+              return hotel.originPlaceId;
+            }
+            console.log(`          ❌ No match for this hotel`);
+          }
+
+          console.log(`    ❌ No location matches found`);
+          return null;
+        }
+
+        // Helper function to find temporal matches
+        function findTemporalMatches(transfer: any, allItems: any[]) {
+          if (!transfer.startDate)
+            return { originPlaceId: null, destinationPlaceId: null };
+
+          const transferTime = new Date(transfer.startDate);
+          const timeWindow = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+
+          let originPlaceId = null;
+          let destinationPlaceId = null;
+
+          // Find items within time window
+          const nearbyItems = allItems.filter((item) => {
+            if (!item.startDate) return false;
+            const itemTime = new Date(item.startDate);
+            const timeDiff = Math.abs(
+              transferTime.getTime() - itemTime.getTime(),
+            );
+            return timeDiff <= timeWindow;
+          });
+
+          // Look for pickup connections (transfer after item ends)
+          let closestPickupItem = null;
+          let closestPickupTimeDiff = Infinity;
+
+          for (const item of nearbyItems) {
+            if (item.type === 'flight') {
+              // For flights, use END time (arrival time) and check it's before or at transfer time
+              const flightEndTime = new Date(item.endDate || item.startDate);
+              if (flightEndTime <= transferTime) {
+                const timeDiff =
+                  transferTime.getTime() - flightEndTime.getTime();
+                if (
+                  timeDiff <= timeWindow &&
+                  timeDiff < closestPickupTimeDiff
+                ) {
+                  closestPickupItem = item;
+                  closestPickupTimeDiff = timeDiff;
+                }
+              }
+            } else if (item.type === 'hotel') {
+              // For hotels, use existing logic (checkout time)
+              const itemEndTime = new Date(item.endDate || item.startDate);
+              if (
+                transferTime >= itemEndTime &&
+                transferTime.getTime() - itemEndTime.getTime() <= timeWindow
+              ) {
+                const timeDiff = transferTime.getTime() - itemEndTime.getTime();
+                if (timeDiff < closestPickupTimeDiff) {
+                  closestPickupItem = item;
+                  closestPickupTimeDiff = timeDiff;
+                }
+              }
+            }
+          }
+
+          if (closestPickupItem) {
+            if (closestPickupItem.type === 'flight') {
+              originPlaceId = closestPickupItem.destinationPlaceId; // Pickup from flight destination (where passenger arrives)
+            } else if (closestPickupItem.type === 'hotel') {
+              originPlaceId = closestPickupItem.originPlaceId; // Pickup from hotel
+            }
+          }
+
+          // Look for dropoff connections (transfer before item starts)
+          let closestDropoffItem = null;
+          let closestDropoffTimeDiff = Infinity;
+
+          for (const item of nearbyItems) {
+            const itemStartTime = new Date(item.startDate);
+            if (transferTime <= itemStartTime) {
+              const timeDiff = itemStartTime.getTime() - transferTime.getTime();
+              if (timeDiff <= timeWindow && timeDiff < closestDropoffTimeDiff) {
+                if (item.type === 'flight') {
+                  closestDropoffItem = item;
+                  closestDropoffTimeDiff = timeDiff;
+                  destinationPlaceId = item.originPlaceId; // Dropoff to flight origin
+                } else if (item.type === 'hotel') {
+                  closestDropoffItem = item;
+                  closestDropoffTimeDiff = timeDiff;
+                  destinationPlaceId = item.originPlaceId; // Dropoff to hotel
+                }
+              }
+            }
+          }
+
+          return { originPlaceId, destinationPlaceId };
+        }
+
+        // Link transfer places after all items are processed
+        await linkTransferPlaces(processedItems);
 
         // Replace the items array with our processed format
         extractedData.items = processedItems;
@@ -1273,8 +2030,6 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
         if (extractedData.items && Array.isArray(extractedData.items)) {
           for (const itemData of extractedData.items) {
             // Convert datetime strings to Date objects while preserving local time
-            console.log(`Raw startDate from OAG: ${itemData.startDate}`);
-            console.log(`Raw endDate from OAG: ${itemData.endDate}`);
 
             let startDate = null;
             let endDate = null;
@@ -1298,10 +2053,6 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
                       parseInt(parts[5]), // minute
                     ),
                   );
-                  console.log(
-                    `Parsed startDate as UTC: ${startDate.toISOString()}`,
-                  );
-                  console.log(`Local representation: ${startDate.toString()}`);
                 }
               }
             }
@@ -1325,10 +2076,6 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
                       parseInt(parts[5]), // minute
                     ),
                   );
-                  console.log(
-                    `Parsed endDate as UTC: ${endDate.toISOString()}`,
-                  );
-                  console.log(`Local representation: ${endDate.toString()}`);
                 }
               }
             }
@@ -1355,6 +2102,12 @@ Output: {"items": [{"type": "flight", "flightNumber": "EI 110", "departureDateTi
                 itemData.title ||
                 'Transfer Service';
               itemIcon = 'transfer';
+            } else if (itemType === 'activity') {
+              generatedTitle = itemData.title || 'Activity';
+              itemIcon = 'activities';
+            } else if (itemType === 'restaurant') {
+              generatedTitle = itemData.title || 'Restaurant';
+              itemIcon = 'restaurant';
             }
 
             console.log(

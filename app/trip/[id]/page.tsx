@@ -35,6 +35,8 @@ import {
   XCircle,
   ArrowLeft,
   Moon,
+  Tag,
+  Activity,
 } from 'react-feather';
 
 interface Trip {
@@ -677,9 +679,9 @@ export default function TripDetailPage() {
                     borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                   }}
                 >
-                  <h3 style={{ margin: 0, fontSize: '1rem' }}>
+                  <p style={{ margin: 0, padding: 0, fontSize: '1rem' }}>
                     {viewingPdf.originalName}
-                  </h3>
+                  </p>
                   <button
                     onClick={() => setViewingPdf(null)}
                     style={{
@@ -769,14 +771,6 @@ export default function TripDetailPage() {
                                   gap: '1rem',
                                 }}
                               >
-                                <FileText
-                                  size={18}
-                                  style={{
-                                    opacity: 0.6,
-                                    flexShrink: 0,
-                                    strokeWidth: 2,
-                                  }}
-                                />
                                 <div style={{ flex: 1 }}>
                                   <div
                                     className={`file-header ${doc.mimeType === 'application/pdf' ? 'clickable' : 'non-clickable'}`}
@@ -1073,7 +1067,7 @@ export default function TripDetailPage() {
                         }}
                       >
                         <button className="btn btn-golden btn-auto">
-                          <ArrowUpCircle size={16} />
+                          <PlusCircle size={16} />
                           Add To Itinerary
                         </button>
                       </div>
@@ -1293,6 +1287,10 @@ export default function TripDetailPage() {
                   Last updated {getRelativeTime(trip.updatedAt)}
                 </p>
 
+                <p className="item-count-pill">
+                  {items.length} {items.length === 1 ? 'item' : 'items'}
+                </p>
+
                 {items.length === 0 ? (
                   <div
                     style={{
@@ -1337,7 +1335,7 @@ export default function TripDetailPage() {
                               <div className="item-sidebar">
                                 <div className="item-icon">
                                   <Image
-                                    src="/images/icons/items/flights.png"
+                                    src="/images/icons/items/flights.png?v=1"
                                     alt="Flight icon"
                                     width={40}
                                     height={40}
@@ -1607,7 +1605,7 @@ export default function TripDetailPage() {
                               <div className="item-sidebar">
                                 <div className="item-icon">
                                   <Image
-                                    src="/images/icons/items/hotel.png"
+                                    src="/images/icons/items/hotel.png?v=1"
                                     alt="Hotel icon"
                                     width={40}
                                     height={40}
@@ -1778,7 +1776,7 @@ export default function TripDetailPage() {
                               <div className="item-sidebar">
                                 <div className="item-icon">
                                   <Image
-                                    src="/images/icons/items/transfer.png"
+                                    src="/images/icons/items/transfer.png?v=1"
                                     alt="Transfer icon"
                                     width={40}
                                     height={40}
@@ -1794,9 +1792,26 @@ export default function TripDetailPage() {
                                     const data = item.data
                                       ? JSON.parse(item.data)
                                       : {};
-                                    return (
-                                      data.contactName || 'Transfer Service'
-                                    );
+
+                                    // Get destination name with fallbacks
+                                    let destinationName =
+                                      item.destinationPlaceName ||
+                                      item.destinationPlaceCity;
+
+                                    // Fallback to dropoff location from transfer data
+                                    if (
+                                      !destinationName &&
+                                      data.dropoffLocation
+                                    ) {
+                                      destinationName = data.dropoffLocation;
+                                    }
+
+                                    // Final fallback
+                                    if (!destinationName) {
+                                      return 'Transfer';
+                                    }
+
+                                    return `Transfer to ${destinationName}`;
                                   })()}
                                 </h3>
 
@@ -1808,35 +1823,133 @@ export default function TripDetailPage() {
                                           item.startDate,
                                         ).toLocaleDateString('en-US', {
                                           weekday: 'short',
-                                          month: 'long',
+                                          month: 'short',
                                           day: 'numeric',
-                                        })
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.startDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /^(\d{2}):(\d{2})$/,
+                                            (_, h, m) => {
+                                              const hour = parseInt(h);
+                                              const period =
+                                                hour >= 12 ? 'PM' : 'AM';
+                                              const displayHour =
+                                                hour === 0
+                                                  ? 12
+                                                  : hour > 12
+                                                    ? hour - 12
+                                                    : hour;
+                                              return `${displayHour}:${m}${period}`;
+                                            },
+                                          )
                                       : 'Date TBD'}
                                   </div>
-                                  <div
-                                    style={{
-                                      fontSize: '0.85rem',
-                                      opacity: 0.7,
-                                      marginTop: '0.25rem',
-                                    }}
-                                  >
-                                    {item.startDate
-                                      ? new Date(
+                                </div>
+
+                                {/* Route */}
+                                <div className="item-route">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+
+                                    // Get origin and destination place names
+                                    let originName =
+                                      item.originPlaceName ||
+                                      item.originPlaceCity;
+                                    let destinationName =
+                                      item.destinationPlaceName ||
+                                      item.destinationPlaceCity;
+
+                                    // Fallback to pickup/dropoff locations from transfer data
+                                    if (!originName && data.pickupLocation) {
+                                      originName = data.pickupLocation;
+                                    }
+                                    if (
+                                      !destinationName &&
+                                      data.dropoffLocation
+                                    ) {
+                                      destinationName = data.dropoffLocation;
+                                    }
+
+                                    // Fallback to generic labels
+                                    if (!originName) originName = 'Pickup';
+                                    if (!destinationName)
+                                      destinationName = 'Dropoff';
+
+                                    return `${originName} → ${destinationName}`;
+                                  })()}
+                                </div>
+
+                                {/* Departure and Arrival Times */}
+                                <div className="item-times">
+                                  <div className="item-departure">
+                                    <ArrowUpCircle size={16} />
+                                    <span>
+                                      {item.startDate
+                                        ? new Date(item.startDate)
+                                            .toISOString()
+                                            .slice(11, 16)
+                                            .replace(
+                                              /^(\d{2}):(\d{2})$/,
+                                              (_, h, m) => {
+                                                const hour = parseInt(h);
+                                                const period =
+                                                  hour >= 12 ? 'PM' : 'AM';
+                                                const displayHour =
+                                                  hour === 0
+                                                    ? 12
+                                                    : hour > 12
+                                                      ? hour - 12
+                                                      : hour;
+                                                return `${displayHour}:${m}${period}`;
+                                              },
+                                            )
+                                        : 'TBD'}
+                                    </span>
+                                  </div>
+                                  <div className="item-arrival">
+                                    <Clock size={16} />
+                                    <span>
+                                      {(() => {
+                                        if (!item.startDate || !item.endDate) {
+                                          return '-';
+                                        }
+
+                                        const startTime = new Date(
                                           item.startDate,
-                                        ).toLocaleTimeString('en-US', {
-                                          hour: 'numeric',
-                                          minute: '2-digit',
-                                          hour12: true,
-                                        })
-                                      : ''}
-                                    {item.endDate &&
-                                      ` → ${new Date(
-                                        item.endDate,
-                                      ).toLocaleTimeString('en-US', {
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true,
-                                      })}`}
+                                        );
+                                        const endTime = new Date(item.endDate);
+                                        const durationMs =
+                                          endTime.getTime() -
+                                          startTime.getTime();
+
+                                        if (durationMs <= 0) {
+                                          return '-';
+                                        }
+
+                                        const minutes = Math.round(
+                                          durationMs / (1000 * 60),
+                                        );
+
+                                        if (minutes < 60) {
+                                          return `${minutes}m`;
+                                        } else {
+                                          const hours = Math.floor(
+                                            minutes / 60,
+                                          );
+                                          const remainingMinutes = minutes % 60;
+                                          if (remainingMinutes === 0) {
+                                            return `${hours}h`;
+                                          } else {
+                                            return `${hours}h ${remainingMinutes}m`;
+                                          }
+                                        }
+                                      })()}
+                                    </span>
                                   </div>
                                 </div>
 
@@ -1852,15 +1965,12 @@ export default function TripDetailPage() {
                                           style={{
                                             display: 'flex',
                                             gap: '1rem',
-                                            marginBottom: '0.75rem',
                                           }}
                                         >
-                                          {data.transferType && (
-                                            <div className="item-class">
-                                              <Navigation2 size={16} />
-                                              <span>{data.transferType}</span>
-                                            </div>
-                                          )}
+                                          <div className="item-class">
+                                            <Award size={16} />
+                                            <span>{data.service || '-'}</span>
+                                          </div>
                                           <div className="item-passengers">
                                             <Users size={16} />
                                             <span>{trip?.groupSize || 1}</span>
@@ -1871,11 +1981,10 @@ export default function TripDetailPage() {
                                             style={{
                                               display: 'flex',
                                               gap: '1rem',
-                                              marginBottom: '0.75rem',
                                             }}
                                           >
                                             <div className="item-vehicle">
-                                              <Briefcase size={16} />
+                                              <Tag size={16} />
                                               <span>{data.vehicleInfo}</span>
                                             </div>
                                           </div>
@@ -1883,6 +1992,18 @@ export default function TripDetailPage() {
                                       </>
                                     );
                                   })()}
+                                  <div className="item-places">
+                                    <MapPin size={16} />
+                                    <span
+                                      style={{
+                                        opacity: item.originLocationSpecific
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.originLocationSpecific || '-'}
+                                    </span>
+                                  </div>
                                   <div className="item-contact">
                                     <Phone size={16} />
                                     <span
@@ -1915,6 +2036,446 @@ export default function TripDetailPage() {
                                       {item.notes || 'No notes'}
                                     </span>
                                   </div>
+                                </div>
+                              </div>
+                            </>
+                          ) : item.type === 'activity' ? (
+                            // Custom Activity Layout
+                            <>
+                              <div className="item-sidebar">
+                                <div className="item-icon">
+                                  <Image
+                                    src="/images/icons/items/activities.png?v=2"
+                                    alt="Activity icon"
+                                    width={40}
+                                    height={40}
+                                    className="item-icon-image"
+                                  />
+                                </div>
+                                <div className="item-timeline"></div>
+                              </div>
+                              <div className="item-content">
+                                {/* Activity Title */}
+                                <h3 className="item-title">
+                                  {item.title || 'Activity'}
+                                </h3>
+
+                                {/* Date and Time Info */}
+                                <div className="item-date">
+                                  <div>
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.startDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /(\d{2}):(\d{2})/,
+                                            (_, h, m) => {
+                                              const hour12 =
+                                                parseInt(h) === 0
+                                                  ? 12
+                                                  : parseInt(h) > 12
+                                                    ? parseInt(h) - 12
+                                                    : parseInt(h);
+                                              const ampm =
+                                                parseInt(h) >= 12 ? 'pm' : 'am';
+                                              return `${hour12}:${m}${ampm}`;
+                                            },
+                                          )
+                                      : 'Date TBD'}
+                                  </div>
+                                </div>
+
+                                {/* Start time and duration */}
+                                <div className="item-times">
+                                  <div className="item-departure">
+                                    <ArrowUpCircle size={16} />
+                                    <span>
+                                      {item.startDate
+                                        ? new Date(item.startDate)
+                                            .toISOString()
+                                            .slice(11, 16)
+                                            .replace(
+                                              /^(\d{2}):(\d{2})$/,
+                                              (_, h, m) => {
+                                                const hour = parseInt(h);
+                                                const period =
+                                                  hour >= 12 ? 'PM' : 'AM';
+                                                const displayHour =
+                                                  hour === 0
+                                                    ? 12
+                                                    : hour > 12
+                                                      ? hour - 12
+                                                      : hour;
+                                                return `${displayHour}:${m}${period}`;
+                                              },
+                                            )
+                                        : 'TBD'}
+                                    </span>
+                                  </div>
+                                  <div className="item-arrival">
+                                    <Clock size={16} />
+                                    <span>
+                                      {(() => {
+                                        if (!item.startDate || !item.endDate) {
+                                          return '-';
+                                        }
+
+                                        const startTime = new Date(
+                                          item.startDate,
+                                        );
+                                        const endTime = new Date(item.endDate);
+                                        const durationMs =
+                                          endTime.getTime() -
+                                          startTime.getTime();
+
+                                        if (durationMs <= 0) {
+                                          return '-';
+                                        }
+
+                                        const minutes = Math.round(
+                                          durationMs / (1000 * 60),
+                                        );
+
+                                        if (minutes < 60) {
+                                          return `${minutes}m`;
+                                        } else {
+                                          const hours = Math.floor(
+                                            minutes / 60,
+                                          );
+                                          const remainingMinutes = minutes % 60;
+                                          if (remainingMinutes === 0) {
+                                            return `${hours}h`;
+                                          } else {
+                                            return `${hours}h ${remainingMinutes}m`;
+                                          }
+                                        }
+                                      })()}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Activity Details */}
+                                <div className="item-details">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      <>
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            gap: '1rem',
+                                          }}
+                                        >
+                                          <div className="item-class">
+                                            <Award size={16} />
+                                            <span>{data.service || '-'}</span>
+                                          </div>
+                                          <div className="item-passengers">
+                                            <Users size={16} />
+                                            <span>{trip?.groupSize || 1}</span>
+                                          </div>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+                                  <div className="item-places">
+                                    <MapPin size={16} />
+                                    <span
+                                      style={{
+                                        opacity: item.originLocationSpecific
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.originLocationSpecific || '-'}
+                                    </span>
+                                  </div>
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return data.contact ? (
+                                      <div className="item-contact">
+                                        <Phone size={16} />
+                                        <span>{data.contact}</span>
+                                      </div>
+                                    ) : (
+                                      <div className="item-contact">
+                                        <Phone size={16} />
+                                        <span style={{ opacity: 0.4 }}>-</span>
+                                      </div>
+                                    );
+                                  })()}
+                                  <div className="item-confirmation">
+                                    <Hash size={16} />
+                                    <span
+                                      className="monospace"
+                                      style={{
+                                        opacity: item.confirmationNumber
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.confirmationNumber || '-'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Activity-specific info */}
+                                <div className="secondary">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      <>
+                                        <div className="item-notes">
+                                          <FileText size={16} />
+                                          <span
+                                            style={{
+                                              opacity: item.notes ? 1 : 0.4,
+                                            }}
+                                          >
+                                            {item.notes || '-'}
+                                          </span>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            </>
+                          ) : item.type === 'restaurant' ? (
+                            // Custom Restaurant Layout
+                            <>
+                              <div className="item-sidebar">
+                                <div className="item-icon">
+                                  <Image
+                                    src="/images/icons/items/restaurant.png?v=1"
+                                    alt="Restaurant icon"
+                                    width={40}
+                                    height={40}
+                                    className="item-icon-image"
+                                  />
+                                </div>
+                                <div className="item-timeline"></div>
+                              </div>
+                              <div className="item-content">
+                                {/* Restaurant Title */}
+                                <h3 className="item-title">
+                                  {item.title || 'Restaurant'}
+                                </h3>
+
+                                {/* Date and Time Info */}
+                                <div className="item-date">
+                                  <div>
+                                    {item.startDate
+                                      ? new Date(
+                                          item.startDate,
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.startDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /(\d{2}):(\d{2})/,
+                                            (_, h, m) => {
+                                              const hour12 =
+                                                parseInt(h) === 0
+                                                  ? 12
+                                                  : parseInt(h) > 12
+                                                    ? parseInt(h) - 12
+                                                    : parseInt(h);
+                                              const ampm =
+                                                parseInt(h) >= 12 ? 'pm' : 'am';
+                                              return `${hour12}:${m}${ampm}`;
+                                            },
+                                          )
+                                      : 'Date TBD'}
+                                  </div>
+                                </div>
+
+                                {/* Start time and duration */}
+                                <div className="item-times">
+                                  <div className="item-departure">
+                                    <ArrowUpCircle size={16} />
+                                    <span>
+                                      {item.startDate
+                                        ? new Date(item.startDate)
+                                            .toISOString()
+                                            .slice(11, 16)
+                                            .replace(
+                                              /^(\d{2}):(\d{2})$/,
+                                              (_, h, m) => {
+                                                const hour = parseInt(h);
+                                                const period =
+                                                  hour >= 12 ? 'PM' : 'AM';
+                                                const displayHour =
+                                                  hour === 0
+                                                    ? 12
+                                                    : hour > 12
+                                                      ? hour - 12
+                                                      : hour;
+                                                return `${displayHour}:${m}${period}`;
+                                              },
+                                            )
+                                        : 'TBD'}
+                                    </span>
+                                  </div>
+                                  <div className="item-arrival">
+                                    <Clock size={16} />
+                                    <span>
+                                      {(() => {
+                                        if (!item.startDate || !item.endDate) {
+                                          return '-';
+                                        }
+
+                                        const startTime = new Date(
+                                          item.startDate,
+                                        );
+                                        const endTime = new Date(item.endDate);
+                                        const durationMs =
+                                          endTime.getTime() -
+                                          startTime.getTime();
+
+                                        if (durationMs <= 0) {
+                                          return '-';
+                                        }
+
+                                        const minutes = Math.round(
+                                          durationMs / (1000 * 60),
+                                        );
+
+                                        if (minutes < 60) {
+                                          return `${minutes}m`;
+                                        } else {
+                                          const hours = Math.floor(
+                                            minutes / 60,
+                                          );
+                                          const remainingMinutes = minutes % 60;
+                                          if (remainingMinutes === 0) {
+                                            return `${hours}h`;
+                                          } else {
+                                            return `${hours}h ${remainingMinutes}m`;
+                                          }
+                                        }
+                                      })()}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Restaurant Details */}
+                                <div className="item-details">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      <>
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            gap: '1rem',
+                                          }}
+                                        >
+                                          <div className="item-class">
+                                            <Award size={16} />
+                                            <span>
+                                              {data.cuisineType || '-'}
+                                            </span>
+                                          </div>
+                                          <div className="item-passengers">
+                                            <Users size={16} />
+                                            <span>
+                                              {data.partySize ||
+                                                trip?.groupSize ||
+                                                1}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+                                  <div className="item-places">
+                                    <MapPin size={16} />
+                                    <span
+                                      style={{
+                                        opacity: item.originLocationSpecific
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.originLocationSpecific || '-'}
+                                    </span>
+                                  </div>
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return data.contactName ? (
+                                      <div className="item-contact">
+                                        <Phone size={16} />
+                                        <span>{data.contactName}</span>
+                                      </div>
+                                    ) : (
+                                      <div className="item-contact">
+                                        <Phone size={16} />
+                                        <span style={{ opacity: 0.4 }}>-</span>
+                                      </div>
+                                    );
+                                  })()}
+                                  <div className="item-confirmation">
+                                    <Hash size={16} />
+                                    <span
+                                      className="monospace"
+                                      style={{
+                                        opacity: item.confirmationNumber
+                                          ? 1
+                                          : 0.4,
+                                      }}
+                                    >
+                                      {item.confirmationNumber || '-'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Restaurant-specific info */}
+                                <div className="secondary">
+                                  {(() => {
+                                    const data = item.data
+                                      ? JSON.parse(item.data)
+                                      : {};
+                                    return (
+                                      <>
+                                        <div className="item-notes">
+                                          <FileText size={16} />
+                                          <span
+                                            style={{
+                                              opacity: data.dietaryRequests
+                                                ? 1
+                                                : 0.4,
+                                            }}
+                                          >
+                                            {data.dietaryRequests || '-'}
+                                          </span>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
                                 </div>
                               </div>
                             </>
@@ -2029,11 +2590,61 @@ export default function TripDetailPage() {
                                     {item.startDate
                                       ? new Date(
                                           item.startDate,
-                                        ).toLocaleString()
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.startDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /^(\d{2}):(\d{2})$/,
+                                            (_, h, m) => {
+                                              const hour = parseInt(h);
+                                              const period =
+                                                hour >= 12 ? 'PM' : 'AM';
+                                              const displayHour =
+                                                hour === 0
+                                                  ? 12
+                                                  : hour > 12
+                                                    ? hour - 12
+                                                    : hour;
+                                              return `${displayHour}:${m}${period}`;
+                                            },
+                                          )
                                       : 'TBD'}
                                     {item.endDate &&
                                       item.startDate !== item.endDate &&
-                                      ` - ${new Date(item.endDate).toLocaleString()}`}
+                                      ` - ${
+                                        new Date(
+                                          item.endDate,
+                                        ).toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }) +
+                                        ' at ' +
+                                        new Date(item.endDate)
+                                          .toISOString()
+                                          .slice(11, 16)
+                                          .replace(
+                                            /^(\d{2}):(\d{2})$/,
+                                            (_, h, m) => {
+                                              const hour = parseInt(h);
+                                              const period =
+                                                hour >= 12 ? 'PM' : 'AM';
+                                              const displayHour =
+                                                hour === 0
+                                                  ? 12
+                                                  : hour > 12
+                                                    ? hour - 12
+                                                    : hour;
+                                              return `${displayHour}:${m}${period}`;
+                                            },
+                                          )
+                                      }`}
                                   </div>
                                 )}
 

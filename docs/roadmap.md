@@ -101,6 +101,34 @@
   - Success/failure notifications with actionable messages
   - Progress indicators for multi-document processing
 
+### OpenAI Performance Optimization
+
+- **✅ Completed:** Upgraded from GPT-4o to GPT-5 for faster responses and lower costs
+- **Model Selection Strategy:**
+  - Implement GPT-4o-mini for simpler extractions (basic flight/hotel data)
+  - Reserve GPT-5 for complex multi-item documents
+  - Add streaming responses for real-time user feedback during processing
+- **Prompt Optimization:**
+  - Reduce prompt size (current prompt is quite large)
+  - Implement structured outputs with JSON schema validation
+  - Break complex documents into smaller, parallel-processable chunks
+- **Caching Strategies:**
+  - Leverage 90% caching discount for repeated prompt parts
+  - Cache system prompt and examples to reduce token usage
+  - Implement intelligent caching for common document patterns
+- **Parallel Processing:**
+  - Process multiple documents simultaneously instead of sequentially
+  - Split large documents into parallel chunks for faster processing
+  - Add document queue management for batch processing
+- **Context Management:**
+  - Utilize GPT-5's larger context window (272K tokens) to process more in one call
+  - Reduce back-and-forth API calls by bundling related operations
+  - Implement smart context window management for optimal token usage
+- **Performance Monitoring:**
+  - Add response time tracking and analytics
+  - Implement cost monitoring per document type
+  - Create performance benchmarks for different optimization strategies
+
 ---
 
 ## ⏱️ Suggested Timeline (Lean MVP Track)

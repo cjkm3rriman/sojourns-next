@@ -130,12 +130,8 @@ h1 {
 
 h2 {
   font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   font-weight: 600; /* Semi-bold */
   font-size: 1.25rem; /* 20px equivalent */
   margin: 0 0 1rem 0;
@@ -143,12 +139,8 @@ h2 {
 
 h3 {
   font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   font-weight: 600; /* Semi-bold */
   font-size: 1.2em;
   margin: 0 0 1rem 0;
@@ -296,11 +288,29 @@ p {
 
 /* Transfer-specific timeline styling */
 .item-transfer .item-timeline {
-  background: linear-gradient(to bottom, #4fb3d9, #1a365d);
+  background: linear-gradient(to bottom, #7d7b6d, #2e2e2e);
 }
 
 .item-transfer .item-timeline::before {
-  background: #4fb3d9;
+  background: #7d7b6d;
+}
+
+/* Activity-specific timeline styling */
+.item-activity .item-timeline {
+  background: linear-gradient(to bottom, #902c1b, rgba(144, 44, 27, 0));
+}
+
+.item-activity .item-timeline::before {
+  background: #902c1b;
+}
+
+/* Restaurant-specific timeline styling */
+.item-restaurant .item-timeline {
+  background: linear-gradient(to bottom, #31568c, rgba(49, 86, 140, 0));
+}
+
+.item-restaurant .item-timeline::before {
+  background: #31568c;
 }
 
 .item-content {
@@ -362,6 +372,7 @@ p {
 .item-confirmation svg,
 .item-notes svg,
 .item-nights svg,
+.item-places svg,
 .item-perks svg,
 .item-vehicle svg {
   opacity: 0.4;
@@ -421,7 +432,8 @@ p {
 .item-confirmation,
 .item-nights,
 .item-perks,
-.item-vehicle {
+.item-vehicle,
+.item-places {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -1296,6 +1308,7 @@ p {
 /* File name styling */
 .file-name {
   color: inherit;
+  font-size: 0.9rem;
 }
 
 .file-name.pdf {
@@ -1317,6 +1330,7 @@ p {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 /* Date badge */
@@ -1513,15 +1527,17 @@ p {
   margin: 0.3em 0;
 }
 
-.itinerary-updated {
-  font-size: 0.8rem;
-  margin: 0.3em 0 0.3em -1px;
-  opacity: 0.6;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.1);
+.itinerary-updated,
+.item-count-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+  margin: 0.3em 0.25em 0.3em -1px;
   display: inline-block;
-  text-transform: lowercase;
 }
 
 body::before {

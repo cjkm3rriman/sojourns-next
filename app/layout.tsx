@@ -1,18 +1,11 @@
 import Providers from './providers';
 import localFont from 'next/font/local';
-import { Inter } from 'next/font/google';
 import './globals.css';
 
 const sojournsFont = localFont({
   src: '../public/fonts/sojourns.otf',
   display: 'swap',
   variable: '--font-sojourns',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
 });
 
 export const metadata = {
@@ -28,8 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} ${sojournsFont.variable}`}
+        className={sojournsFont.variable}
         style={{
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
           margin: 0,
           padding: 0,
           backgroundColor: '#111111',
