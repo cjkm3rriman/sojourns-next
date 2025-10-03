@@ -1163,20 +1163,16 @@ p {
 
 /* Itinerary column spacing and typography */
 .itinerary {
-  padding-top: 2rem;
+  padding-top: 12px;
+  width: 420px;
+  margin-left: 620px;
 }
 
-.itinerary h1 {
-  text-align: left;
-  margin: 0 0 1.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.itinerary h2 {
+.title h2 {
   margin: 0 0 0.2rem 0;
   font-size: 1.4rem;
+  font-family: var(--font-sojourns), serif;
+  font-weight: 400;
 }
 
 /* Sticky left column */
@@ -1185,11 +1181,6 @@ p {
   top: 3rem; /* Positive top to account for main container padding */
   height: 100vh;
   overflow-y: auto;
-}
-
-/* Itinerary column spacing and typography */
-.itinerary {
-  padding-top: 2rem;
 }
 
 /* User info row standard height */
@@ -1459,7 +1450,136 @@ p {
 
 /* Title section styling */
 .title {
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  position: relative;
+  border-radius: 30px;
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.19) 19%,
+    rgba(0, 0, 0, 0.44) 44%,
+    rgba(0, 0, 0, 0.19) 76%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-clip: content-box;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(255, 255, 255, 0.05) inset;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease-out;
+  cursor: pointer;
+}
+
+.trips .title {
+  margin-bottom: 0;
+  height: 380px;
+}
+
+.trips .title h1 {
+  font-size: 1.8rem;
+  margin-top: 48px;
+}
+
+.trips .title h2 {
+  font-size: 1.2rem;
+}
+
+.trips .title-date {
+  font-size: 0.95rem;
+}
+
+.title-icon-badge {
+  margin-top: 48px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.08)
+  );
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 60px;
+  padding: 12px;
+  box-shadow:
+    0 2px 8px 0 rgba(255, 255, 255, 0.1) inset,
+    0 -2px 8px 0 rgba(0, 0, 0, 0.1) inset;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  isolation: isolate;
+  transform: translate3d(0, 0, 0);
+  z-index: 20;
+}
+
+.title h1 {
+  margin-top: 60px;
+  text-align: left;
+  margin: 60px 0 0.2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 2.2rem;
+}
+
+.title-date {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+.title-status {
+  padding: 0.35rem 0.65rem;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  text-transform: capitalize;
+  z-index: 10;
+}
+
+.title-status.confirmed {
+  background-color: rgba(0, 90, 0, 0.9);
+}
+
+.title-info {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 36px 20px 16px 20px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.25) 20%,
+    rgba(0, 0, 0, 0.6) 80%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  text-align: center;
 }
 
 /* Trip details section styling */
@@ -1523,12 +1643,43 @@ p {
   text-transform: capitalize;
 }
 
-.itinerary-strap {
+.title-strap {
   margin: 0.3em 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  border-radius: 12px;
+  padding: 0.35rem 0.6rem;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
 }
 
-.itinerary-updated,
-.item-count-pill {
+.title-strap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: sheen 6s infinite;
+}
+
+@keyframes sheen {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.itinerary-updated {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
@@ -1540,22 +1691,43 @@ p {
   display: inline-block;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 20vh;
-  background: linear-gradient(
-    to bottom,
-    rgba(16, 16, 22, 0.9) 0%,
-    rgba(16, 16, 22, 0.3) 50%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  pointer-events: none;
-  z-index: 999;
+.item-count-pill {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.4rem 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.8;
+  margin: 0 0.25em 0 -1px;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.item-count-pill:hover {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 1;
+}
+
+.item-count-pill.active {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.pill-count {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 0.4rem;
+  min-width: 0.8rem;
+  text-align: center;
 }
 
 body::after {
@@ -1569,7 +1741,12 @@ body::after {
   background: linear-gradient(
     to top,
     rgba(16, 16, 22, 0.9) 0%,
-    rgba(16, 16, 22, 0.3) 50%,
+    rgba(16, 16, 22, 0.7) 15%,
+    rgba(16, 16, 22, 0.5) 30%,
+    rgba(16, 16, 22, 0.3) 45%,
+    rgba(16, 16, 22, 0.2) 50%,
+    rgba(16, 16, 22, 0.1) 70%,
+    rgba(0, 0, 0, 0.05) 85%,
     rgba(0, 0, 0, 0) 100%
   );
   pointer-events: none;

@@ -129,11 +129,12 @@ export async function PATCH(
     }
 
     // Validate status value
-    const validStatuses = ['draft', 'published', 'cancelled'];
+    const validStatuses = ['draft', 'proposal', 'confirmed', 'cancelled'];
     if (!validStatuses.includes(body.status)) {
       return NextResponse.json(
         {
-          error: 'Invalid status. Must be one of: draft, published, cancelled',
+          error:
+            'Invalid status. Must be one of: draft, proposal, confirmed, cancelled',
         },
         { status: 400 },
       );
@@ -171,7 +172,7 @@ export async function PATCH(
     const updatedTrip = await db
       .update(trips)
       .set({
-        status: body.status as 'draft' | 'published' | 'cancelled',
+        status: body.status as 'draft' | 'proposal' | 'confirmed' | 'cancelled',
         updatedAt: new Date(),
       })
       .where(

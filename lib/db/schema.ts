@@ -19,7 +19,8 @@ export const membershipRoleEnum = pgEnum('membership_role', [
 ]);
 export const tripStatusEnum = pgEnum('trip_status', [
   'draft',
-  'published',
+  'proposal',
+  'confirmed',
   'cancelled',
 ]);
 export const itemTypeEnum = pgEnum('item_type', [

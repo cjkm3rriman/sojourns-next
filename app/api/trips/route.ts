@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { trips, users, memberships } from '@/lib/db/schema';
+import { trips, users, memberships, organizations } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -117,10 +117,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch all trips for the organization
+    // Fetch all trips for the organization with agent information
+    const agentUser = users; // Alias for the join
     const organizationTrips = await db
-      .select()
+      .select({
+        id: trips.id,
+        clientName: trips.clientName,
+        destination: trips.destination,
+        tripSummary: trips.tripSummary,
+        icon: trips.icon,
+        status: trips.status,
+        startDate: trips.startDate,
+        endDate: trips.endDate,
+        createdAt: trips.createdAt,
+        updatedAt: trips.updatedAt,
+        agentId: trips.agentId,
+        agentName: agentUser.name,
+        agentClerkUserId: agentUser.clerkUserId,
+        organizationName: organizations.name,
+      })
       .from(trips)
+      .leftJoin(agentUser, eq(trips.agentId, agentUser.id))
+      .leftJoin(organizations, eq(trips.organizationId, organizations.id))
       .where(eq(trips.organizationId, organizationId))
       .orderBy(desc(trips.createdAt));
 

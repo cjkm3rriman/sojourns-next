@@ -131,6 +131,67 @@
 
 ---
 
+## 🧪 Testing Strategy
+
+### Phase 1: Foundation (Week 1-2)
+
+#### Utility & Logic Tests _(High Priority, Low Complexity)_
+
+- [x] Date formatting functions (`src/lib/date.ts` - started)
+- [ ] Validation schemas (`lib/validation.ts`)
+- [ ] Database queries (`lib/db/queries.ts`)
+- [ ] User data transformations (`lib/user-data.ts`)
+
+#### API Route Tests _(High Priority, Medium Complexity)_
+
+Critical endpoints:
+
+- [ ] `GET /api/trips` - Trip listing
+- [ ] `POST /api/trips` - Trip creation
+- [ ] `GET/PUT /api/trips/[id]` - Trip CRUD
+- [ ] `POST /api/trips/[id]/analyze` - Document analysis core logic
+
+### Phase 2: Integration (Week 3-4)
+
+#### Database Integration Tests
+
+- [ ] Trip CRUD operations with real DB
+- [ ] Document upload/analysis workflow
+- [ ] User sync functionality
+- [ ] Clerk webhook processing
+
+#### Component Tests _(Medium Priority)_
+
+Critical UI components:
+
+- [ ] Trip filtering system (item count pills)
+- [ ] Document viewer/uploader
+- [ ] Trip creation form
+- [ ] Status badge logic
+
+### Phase 3: End-to-End (Month 2)
+
+#### User Journey Tests
+
+- [ ] Complete trip creation → analysis → viewing flow
+- [ ] Document upload → processing → display pipeline
+- [ ] User authentication → sync → trip access
+
+#### Testing Stack (configured):
+
+- **Vitest** - Unit/integration tests
+- **@testing-library/react** - Component testing
+- **MSW** - API mocking
+- **Playwright** - E2E (to be added)
+
+#### Coverage Goals:
+
+- **Phase 1**: 60% coverage on utilities/API routes
+- **Phase 2**: 70% coverage including components
+- **Phase 3**: 80% coverage with E2E confidence
+
+---
+
 ## ⏱️ Suggested Timeline (Lean MVP Track)
 
 - **Week 1–2:** Auth + DB + admin CRUD.

@@ -116,6 +116,7 @@ export default function TripDetailPage() {
   const [viewingPdf, setViewingPdf] = useState<Document | null>(null);
   const [iconExists, setIconExists] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const milesSrc = '/images/miles.png?v=7';
 
   const shortenFilename = (
@@ -234,7 +235,7 @@ export default function TripDetailPage() {
       const img = document.createElement('img');
       img.onload = () => setIconExists(true);
       img.onerror = () => setIconExists(false);
-      img.src = `/images/icons/trip/${trip.icon}.png?v=1`;
+      img.src = `/images/icons/trip/${trip.icon}.png?v=25`;
     } else {
       setIconExists(false);
     }
@@ -330,7 +331,7 @@ export default function TripDetailPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: 'published' }),
+        body: JSON.stringify({ status: 'confirmed' }),
       });
 
       if (!response.ok) {
@@ -343,7 +344,7 @@ export default function TripDetailPage() {
       // Update the trip state with new status
       setTrip((prev) =>
         prev
-          ? { ...prev, status: 'published', updatedAt: data.trip.updatedAt }
+          ? { ...prev, status: 'confirmed', updatedAt: data.trip.updatedAt }
           : null,
       );
 
@@ -615,7 +616,7 @@ export default function TripDetailPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 500px',
+            gridTemplateColumns: '1fr 420px',
             gap: '1.5rem',
             flex: 1,
           }}
@@ -647,19 +648,32 @@ export default function TripDetailPage() {
                   color: 'rgba(255, 255, 255, 0.7)',
                 }}
               >
-                <Link
-                  href="/trips"
+                <div
                   style={{
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
+                    color: 'rgba(255, 255, 255, 0.7)',
                   }}
                 >
-                  <ArrowLeft size={16} />
-                  Back to Trips
-                </Link>
+                  <Link
+                    href="/trips"
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <ArrowLeft size={16} />
+                    Back to Trips
+                  </Link>
+                  <span>•</span>
+                  <span>
+                    This trip last updated {getRelativeTime(trip.updatedAt)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -727,7 +741,7 @@ export default function TripDetailPage() {
                     >
                       Loading documents...
                     </div>
-                  ) : documents.length > 0 ? (
+                  ) : (
                     <div className="documents" style={{ marginBottom: '2rem' }}>
                       <div
                         style={{
@@ -751,120 +765,137 @@ export default function TripDetailPage() {
                           <span>Upload</span>
                         </div>
                       </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        {documents.map((doc) => (
-                          <div
-                            key={doc.id}
-                            className={`file ${doc.status === 'ignored' ? 'ignored' : ''}`}
-                          >
-                            <div className="file-content">
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '1rem',
-                                }}
-                              >
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    className={`file-header ${doc.mimeType === 'application/pdf' ? 'clickable' : 'non-clickable'}`}
-                                    onClick={() => {
-                                      if (doc.mimeType === 'application/pdf') {
-                                        setViewingPdf(doc);
-                                      }
-                                    }}
-                                    title={doc.originalName}
-                                  >
-                                    <span
-                                      className={`file-name ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
+                      {documents.length > 0 ? (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          {documents.map((doc) => (
+                            <div
+                              key={doc.id}
+                              className={`file ${doc.status === 'ignored' ? 'ignored' : ''}`}
+                            >
+                              <div className="file-content">
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '1rem',
+                                  }}
+                                >
+                                  <div style={{ flex: 1 }}>
+                                    <div
+                                      className={`file-header ${doc.mimeType === 'application/pdf' ? 'clickable' : 'non-clickable'}`}
+                                      onClick={() => {
+                                        if (
+                                          doc.mimeType === 'application/pdf'
+                                        ) {
+                                          setViewingPdf(doc);
+                                        }
+                                      }}
+                                      title={doc.originalName}
                                     >
-                                      {shortenFilename(doc.originalName)}
-                                    </span>
-                                    <Eye
-                                      size={16}
-                                      className={`file-icon ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
-                                    />
-                                  </div>
+                                      <span
+                                        className={`file-name ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
+                                      >
+                                        {shortenFilename(doc.originalName)}
+                                      </span>
+                                      <Eye
+                                        size={16}
+                                        className={`file-icon ${doc.mimeType === 'application/pdf' ? 'pdf' : ''}`}
+                                      />
+                                    </div>
 
-                                  <div className="file-badges">
-                                    <span
-                                      className={`file-status-badge ${doc.status === 'uploaded' ? 'uploaded' : doc.status}`}
-                                    >
-                                      {doc.status === 'ignored'
-                                        ? 'ignored'
-                                        : doc.status === 'uploaded'
-                                          ? 'not processed'
-                                          : doc.status}
-                                    </span>
-                                    <span className="file-date-badge">
-                                      {new Date(doc.createdAt)
-                                        .toLocaleDateString('en-US', {
-                                          month: 'short',
-                                          day: 'numeric',
-                                          year: 'numeric',
-                                        })
-                                        .replace(/(\d+),/, (match, day) => {
-                                          const dayNum = parseInt(day);
-                                          const suffix =
-                                            dayNum % 10 === 1 && dayNum !== 11
-                                              ? 'st'
-                                              : dayNum % 10 === 2 &&
-                                                  dayNum !== 12
-                                                ? 'nd'
-                                                : dayNum % 10 === 3 &&
-                                                    dayNum !== 13
-                                                  ? 'rd'
-                                                  : 'th';
-                                          return `${day}${suffix}`;
-                                        })}
-                                    </span>
+                                    <div className="file-badges">
+                                      <span
+                                        className={`file-status-badge ${doc.status === 'uploaded' ? 'uploaded' : doc.status}`}
+                                      >
+                                        {doc.status === 'ignored'
+                                          ? 'ignored'
+                                          : doc.status === 'uploaded'
+                                            ? 'not processed'
+                                            : doc.status}
+                                      </span>
+                                      <span className="file-date-badge">
+                                        {new Date(doc.createdAt)
+                                          .toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                          })
+                                          .replace(/(\d+),/, (match, day) => {
+                                            const dayNum = parseInt(day);
+                                            const suffix =
+                                              dayNum % 10 === 1 && dayNum !== 11
+                                                ? 'st'
+                                                : dayNum % 10 === 2 &&
+                                                    dayNum !== 12
+                                                  ? 'nd'
+                                                  : dayNum % 10 === 3 &&
+                                                      dayNum !== 13
+                                                    ? 'rd'
+                                                    : 'th';
+                                            return `${day}${suffix}`;
+                                          })}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
 
-                            <div className="file-actions">
-                              <button
-                                className={`file-action-btn ${doc.status === 'ignored' ? 'ignored' : 'included'}`}
-                                disabled={togglingIgnore === doc.id}
-                                title={
-                                  doc.status === 'ignored'
-                                    ? 'Excluded from AI analysis'
-                                    : 'Included in AI analysis'
-                                }
-                                onClick={() =>
-                                  toggleIgnoreDocument(
-                                    doc.id,
-                                    doc.status === 'ignored',
-                                  )
-                                }
-                              >
-                                {togglingIgnore === doc.id ? (
-                                  '...'
-                                ) : doc.status === 'ignored' ? (
-                                  <XCircle />
-                                ) : (
-                                  <CheckCircle />
-                                )}
-                              </button>
+                              <div className="file-actions">
+                                <button
+                                  className={`file-action-btn ${doc.status === 'ignored' ? 'ignored' : 'included'}`}
+                                  disabled={togglingIgnore === doc.id}
+                                  title={
+                                    doc.status === 'ignored'
+                                      ? 'Excluded from AI analysis'
+                                      : 'Included in AI analysis'
+                                  }
+                                  onClick={() =>
+                                    toggleIgnoreDocument(
+                                      doc.id,
+                                      doc.status === 'ignored',
+                                    )
+                                  }
+                                >
+                                  {togglingIgnore === doc.id ? (
+                                    '...'
+                                  ) : doc.status === 'ignored' ? (
+                                    <XCircle />
+                                  ) : (
+                                    <CheckCircle />
+                                  )}
+                                </button>
 
-                              <button
-                                className="file-action-btn delete"
-                                disabled={deletingDoc === doc.id}
-                                onClick={() => deleteDocument(doc.id)}
-                              >
-                                {deletingDoc === doc.id ? '...' : <Trash2 />}
-                              </button>
+                                <button
+                                  className="file-action-btn delete"
+                                  disabled={deletingDoc === doc.id}
+                                  onClick={() => deleteDocument(doc.id)}
+                                >
+                                  {deletingDoc === doc.id ? '...' : <Trash2 />}
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            paddingTop: '1rem',
+                            paddingBottom: '1rem',
+                            textAlign: 'left',
+                            fontSize: '0.9rem',
+                            opacity: 0.7,
+                          }}
+                        >
+                          No documents uploaded yet. Click upload to get
+                          started.
+                        </div>
+                      )}
 
                       {/* Analyze Documents Button */}
                       {documents.some(
@@ -961,7 +992,7 @@ export default function TripDetailPage() {
                         </button>
                       )}
                     </div>
-                  ) : null}
+                  )}
 
                   <input
                     type="file"
@@ -1032,7 +1063,7 @@ export default function TripDetailPage() {
                       }}
                     >
                       <textarea
-                        placeholder="Outline a flight, hotel, transfer, restaurant booking, or activity to add to the itinerary"
+                        placeholder="Type or paste details on one or more flights, hotels, transfers, restaurant reservations or activities."
                         style={{
                           width: '100%',
                           padding: '1rem',
@@ -1076,7 +1107,7 @@ export default function TripDetailPage() {
                 </div>
 
                 {/* Publish Section - only show for draft trips */}
-                {trip.status === 'draft' && (
+                {(trip.status === 'draft' || trip.status === 'proposal') && (
                   <div
                     style={{
                       marginTop: '2rem',
@@ -1102,7 +1133,7 @@ export default function TripDetailPage() {
                 )}
 
                 {/* Published Trip Actions - only show for published trips */}
-                {trip.status === 'published' && (
+                {trip.status === 'confirmed' && (
                   <div
                     style={{
                       marginTop: '2rem',
@@ -1153,13 +1184,7 @@ export default function TripDetailPage() {
           </div>
 
           {/* Right Column - Trip Items */}
-          <div
-            className="itinerary"
-            style={{
-              marginLeft: '600px',
-              width: '500px',
-            }}
-          >
+          <div className="itinerary">
             {itemsLoading ? (
               <div
                 className="simple-card"
@@ -1172,124 +1197,149 @@ export default function TripDetailPage() {
                 {/* Trip title at top of right column */}
                 <div
                   className="title"
-                  style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
+                  style={{
+                    backgroundImage: `linear-gradient(
+                      to bottom,
+                      rgba(0, 0, 0, 0) 0%,
+                      rgba(0, 0, 0, 0.19) 19%,
+                      rgba(0, 0, 0, 0.44) 44%,
+                      rgba(0, 0, 0, 0.19) 76%,
+                      rgba(0, 0, 0, 0) 100%
+                    ), url('/images/places/${
+                      trip?.destination
+                        ?.toLowerCase()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, '') || 'default'
+                    }.jpg')`,
+                  }}
                 >
-                  {iconExists && trip?.icon && (
+                  <div className="title-icon-badge">
                     <Image
-                      src={`/images/icons/trip/${trip.icon}.png?v=1`}
+                      className="title-icon"
+                      src={
+                        iconExists && trip?.icon
+                          ? `/images/icons/trip/${trip.icon}.png?v=25`
+                          : `/images/icons/trip/default.png?v=25`
+                      }
                       alt="Trip icon"
-                      width={72}
-                      height={72}
+                      width={40}
+                      height={40}
                       style={{ objectFit: 'contain', flexShrink: 0 }}
                     />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      <h1
-                        style={{
-                          margin: 0,
-                          fontSize: '1.8rem',
-                        }}
-                      >
-                        {trip.destination || 'Somewhere Delightful'}
-                      </h1>
-                      <span
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                          fontSize: '0.85rem',
-                          textTransform: 'capitalize',
-                        }}
-                      >
-                        {trip.status}
-                      </span>
-                    </div>
-                    <span
-                      style={{
-                        fontSize: '1.1rem',
-                        opacity: 0.8,
-                        fontWeight: 'normal',
-                      }}
-                    >
-                      {(() => {
-                        if (!trip.startDate)
-                          return 'Trip dates to be determined';
+                  </div>
+                  <h1>{trip.destination || 'Somewhere'}</h1>
+                  <div className="title-date">
+                    {(() => {
+                      if (!trip.startDate) return 'sooner → later';
 
-                        const startDate = new Date(trip.startDate);
-                        const endDate = trip.endDate
-                          ? new Date(trip.endDate)
-                          : null;
+                      const startDate = new Date(trip.startDate);
+                      const endDate = trip.endDate
+                        ? new Date(trip.endDate)
+                        : null;
 
-                        const formatDate = (date: Date, includeDay = false) => {
-                          const options: Intl.DateTimeFormatOptions = {
-                            month: 'long',
-                            day: 'numeric',
-                          };
-                          if (includeDay) {
-                            options.weekday = 'short';
-                          }
-
-                          const formatted = date.toLocaleDateString(
-                            'en-US',
-                            options,
-                          );
-                          // Add ordinal suffix to day
-                          return formatted.replace(/(\d+)/, (match, day) => {
-                            const dayNum = parseInt(day);
-                            const suffix =
-                              dayNum % 10 === 1 && dayNum !== 11
-                                ? 'st'
-                                : dayNum % 10 === 2 && dayNum !== 12
-                                  ? 'nd'
-                                  : dayNum % 10 === 3 && dayNum !== 13
-                                    ? 'rd'
-                                    : 'th';
-                            return `${day}${suffix}`;
-                          });
+                      const formatDate = (date: Date, includeDay = false) => {
+                        const options: Intl.DateTimeFormatOptions = {
+                          month: 'long',
+                          day: 'numeric',
                         };
+                        if (includeDay) {
+                          options.weekday = 'short';
+                        }
 
-                        const startFormatted = formatDate(startDate, false);
+                        const formatted = date.toLocaleDateString(
+                          'en-US',
+                          options,
+                        );
+                        // Add ordinal suffix to day
+                        return formatted.replace(/(\d+)/, (match, day) => {
+                          const dayNum = parseInt(day);
+                          const suffix =
+                            dayNum % 10 === 1 && dayNum !== 11
+                              ? 'st'
+                              : dayNum % 10 === 2 && dayNum !== 12
+                                ? 'nd'
+                                : dayNum % 10 === 3 && dayNum !== 13
+                                  ? 'rd'
+                                  : 'th';
+                          return `${day}${suffix}`;
+                        });
+                      };
 
-                        if (!endDate) return startFormatted;
+                      const startFormatted = formatDate(startDate, false);
 
-                        // If same month, just show day for end date
-                        const endFormatted =
-                          startDate.getMonth() === endDate.getMonth()
-                            ? formatDate(endDate).replace(/\w+ /, '') // Remove month
-                            : formatDate(endDate);
+                      if (!endDate) return startFormatted;
 
-                        return `${startFormatted} → ${endFormatted}`;
-                      })()}
-                    </span>
+                      // If same month, just show day for end date
+                      const endFormatted =
+                        startDate.getMonth() === endDate.getMonth()
+                          ? formatDate(endDate).replace(/\w+ /, '') // Remove month
+                          : formatDate(endDate);
+
+                      return `${startFormatted} → ${endFormatted}`;
+                    })()}
+                  </div>
+                  <div className="title-info">
+                    <div
+                      className={`title-status ${trip.status === 'confirmed' ? 'confirmed' : ''}`}
+                    >
+                      {trip.status}
+                    </div>
+                  </div>
+                  <div className="title-content">
+                    <h2>
+                      {trip.clientName
+                        ? `${trip.clientName} Itinerary`
+                        : 'Itinerary'}
+                    </h2>
+                    <p className="title-strap">
+                      {trip.agentName || 'your agent'} at{' '}
+                      {trip.organizationName || 'their organization'}
+                    </p>
                   </div>
                 </div>
 
-                <h2>
-                  {trip.clientName
-                    ? `${trip.clientName} Itinerary`
-                    : 'Itinerary'}
-                </h2>
+                <div
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}
+                >
+                  {(() => {
+                    const counts = items.reduce(
+                      (acc, item) => {
+                        acc[item.type] = (acc[item.type] || 0) + 1;
+                        return acc;
+                      },
+                      {} as Record<string, number>,
+                    );
 
-                <p className="itinerary-strap">
-                  Brought to you by {trip.agentName || 'your agent'} at{' '}
-                  {trip.organizationName || 'their organization'}
-                </p>
-
-                <p className="itinerary-updated">
-                  Last updated {getRelativeTime(trip.updatedAt)}
-                </p>
-
-                <p className="item-count-pill">
-                  {items.length} {items.length === 1 ? 'item' : 'items'}
-                </p>
+                    const orderedTypes = [
+                      'flight',
+                      'hotel',
+                      'restaurant',
+                      'activity',
+                      'transfer',
+                    ];
+                    return orderedTypes
+                      .filter((type) => counts[type])
+                      .map((type) => [type, counts[type]] as [string, number])
+                      .map(([type, count]) => (
+                        <span
+                          key={type}
+                          className={`item-count-pill ${activeFilter === type ? 'active' : ''}`}
+                          onClick={() => {
+                            if (activeFilter === type) {
+                              setActiveFilter(null); // Remove filter if clicking active filter
+                            } else {
+                              setActiveFilter(type); // Set new filter
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                          {count !== 1 ? 's' : ''}{' '}
+                          <div className="pill-count">{count}</div>
+                        </span>
+                      ));
+                  })()}
+                </div>
 
                 {items.length === 0 ? (
                   <div
@@ -1314,6 +1364,9 @@ export default function TripDetailPage() {
                     }}
                   >
                     {items
+                      .filter(
+                        (item) => !activeFilter || item.type === activeFilter,
+                      )
                       .sort((a, b) => {
                         // Sort by start time, with items without start time at the end
                         if (!a.startDate && !b.startDate) return 0;
