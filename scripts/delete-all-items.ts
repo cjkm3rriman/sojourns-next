@@ -1,13 +1,14 @@
 #!/usr/bin/env tsx
 
 /**
- * Script to delete all items from the items table
+ * Script to delete all items from the items table (excluding flights)
  * Usage: npx tsx scripts/delete-all-items.ts [--dry-run]
  */
 
 import { config } from 'dotenv';
 import { getDb } from '../lib/db';
 import { items } from '../lib/db/schema';
+import { ne } from 'drizzle-orm';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -15,12 +16,12 @@ config({ path: '.env.local' });
 const DRY_RUN = process.argv.includes('--dry-run');
 
 async function deleteAllItems() {
-  console.log('🔍 Finding all items in database...');
+  console.log('🔍 Finding all non-flight items in database...');
   const db = getDb();
 
-  // Get count of items first
-  const allItems = await db.select().from(items);
-  console.log(`Found ${allItems.length} items in database`);
+  // Get count of non-flight items first
+  const allItems = await db.select().from(items).where(ne(items.type, 'flight'));
+  console.log(`Found ${allItems.length} non-flight items in database`);
 
   if (allItems.length === 0) {
     console.log('No items to delete.');
@@ -28,13 +29,13 @@ async function deleteAllItems() {
   }
 
   console.log(
-    `${DRY_RUN ? '[DRY RUN] Would delete' : 'Deleting'} all ${allItems.length} items...`,
+    `${DRY_RUN ? '[DRY RUN] Would delete' : 'Deleting'} all ${allItems.length} non-flight items (flights will be preserved)...`,
   );
 
   if (!DRY_RUN) {
     try {
-      const result = await db.delete(items);
-      console.log(`✅ Successfully deleted all items from database`);
+      const result = await db.delete(items).where(ne(items.type, 'flight'));
+      console.log(`✅ Successfully deleted all non-flight items from database`);
     } catch (error) {
       console.error(`❌ Failed to delete items:`, error);
       throw error;
@@ -61,8 +62,9 @@ async function main() {
 
   if (!DRY_RUN) {
     console.log(
-      '⚠️  WARNING: This will permanently delete ALL items from the database!',
+      '⚠️  WARNING: This will permanently delete all non-flight items from the database!',
     );
+    console.log('⚠️  Flights will be preserved.');
     console.log('⚠️  This action cannot be undone!');
     console.log('');
   }

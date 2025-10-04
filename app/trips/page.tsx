@@ -3,7 +3,7 @@ import NextDynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sunrise, Search, Shuffle } from 'react-feather';
+import { PlusCircle, Search, Shuffle } from 'react-feather';
 import { useAutoSync } from '@/lib/hooks/useAutoSync';
 
 export const dynamic = 'force-dynamic';
@@ -356,10 +356,10 @@ export default function DashboardPage() {
                     placeholder="Search trips..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    className="input-rounded"
                     style={{
                       padding: '0.75rem 1rem 0.75rem 2.5rem',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
                       background: 'rgba(255, 255, 255, 0.05)',
                       color: 'inherit',
                       fontSize: '0.9rem',
@@ -373,7 +373,7 @@ export default function DashboardPage() {
                   onClick={() =>
                     setSortBy(sortBy === 'created' ? 'startDate' : 'created')
                   }
-                  className="btn btn-golden"
+                  className="btn btn-golden input-rounded"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -394,7 +394,7 @@ export default function DashboardPage() {
                   width: 'fit-content',
                 }}
               >
-                <Sunrise size={16} /> Create New Trip
+                <PlusCircle size={16} /> New Trip
               </Link>
             </div>
           </SignedIn>
@@ -484,26 +484,28 @@ export default function DashboardPage() {
                             >
                               {trip.status}
                             </div>
-                            {trip.agentClerkUserId &&
-                              agentImages[trip.agentClerkUserId] && (
-                                <Image
-                                  className="title-agent"
-                                  src={agentImages[trip.agentClerkUserId]}
-                                  alt={trip.agentName || 'Agent'}
-                                  width={28}
-                                  height={28}
-                                  style={{
-                                    borderRadius: '50%',
-                                    objectFit: 'cover',
-                                  }}
-                                />
-                              )}
                           </div>
                           <div className="title-content">
                             <h2>{trip.clientName || 'Client'}</h2>
-                            <p className="title-strap">
-                              {tripItemCounts[trip.id] || 0} items
-                            </p>
+                            <div className="title-bottom">
+                              <p className="title-strap">
+                                {tripItemCounts[trip.id] || 0} items
+                              </p>
+                              {trip.agentClerkUserId &&
+                                agentImages[trip.agentClerkUserId] && (
+                                  <Image
+                                    className="title-agent"
+                                    src={agentImages[trip.agentClerkUserId]}
+                                    alt={trip.agentName || 'Agent'}
+                                    width={28}
+                                    height={28}
+                                    style={{
+                                      borderRadius: '50%',
+                                      objectFit: 'cover',
+                                    }}
+                                  />
+                                )}
+                            </div>
                           </div>
                         </div>
                       </div>

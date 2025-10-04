@@ -103,6 +103,9 @@ export const trips = pgTable('trips', {
   // Client access
   shareToken: text('share_token').unique(),
 
+  // OpenAI Vector Store for document analysis
+  vectorStoreId: text('vector_store_id'),
+
   // Future activity logging
   version: integer('version').default(1).notNull(),
 

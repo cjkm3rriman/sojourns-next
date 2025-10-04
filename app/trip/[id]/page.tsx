@@ -1291,7 +1291,7 @@ export default function TripDetailPage() {
                         ? `${trip.clientName} Itinerary`
                         : 'Itinerary'}
                     </h2>
-                    <p className="title-strap">
+                    <p className="title-strap pill-sheen">
                       {trip.agentName || 'your agent'} at{' '}
                       {trip.organizationName || 'their organization'}
                     </p>
@@ -1323,7 +1323,7 @@ export default function TripDetailPage() {
                       .map(([type, count]) => (
                         <span
                           key={type}
-                          className={`item-count-pill ${activeFilter === type ? 'active' : ''}`}
+                          className={`item-count-pill input-rounded ${activeFilter === type ? 'active' : ''}`}
                           onClick={() => {
                             if (activeFilter === type) {
                               setActiveFilter(null); // Remove filter if clicking active filter

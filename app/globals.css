@@ -578,6 +578,10 @@ p {
   box-sizing: border-box;
 }
 
+.input-rounded {
+  border-radius: 40px !important;
+}
+
 /* Primary glassmorphism button */
 .btn-primary {
   background: rgba(255, 255, 255, 0.15);
@@ -1643,6 +1647,15 @@ p {
   text-transform: capitalize;
 }
 
+.title-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
 .title-strap {
   margin: 0.3em 0;
   background-color: rgba(0, 0, 0, 0.2);
@@ -1654,7 +1667,7 @@ p {
   overflow: hidden;
 }
 
-.title-strap::before {
+.pill-sheen::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1697,7 +1710,7 @@ p {
   -webkit-backdrop-filter: blur(8px);
   border: none;
   border-radius: 8px;
-  padding: 0.4rem 0.4rem 0.4rem 0.6rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.8rem;
   font-size: 0.8rem;
   font-weight: 500;
   opacity: 0.8;
@@ -1721,11 +1734,11 @@ p {
 .pill-count {
   display: inline-block;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  border-radius: 12px;
   padding: 0.2rem 0.4rem;
   font-size: 0.7rem;
   font-weight: 600;
-  margin-left: 0.4rem;
+  margin-left: 0.2rem;
   min-width: 0.8rem;
   text-align: center;
 }
