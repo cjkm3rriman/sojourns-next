@@ -24,13 +24,16 @@ FOR FLIGHTS - EXTRACT THESE 6 FIELDS:
 - If you see neither - set both fields to null
 - ❌ NEVER set departureDateTime and arrivalDateTime to the same time
 
-FOR HOTELS - EXTRACT THESE 6 FIELDS:
+FOR HOTELS - EXTRACT THESE 9 FIELDS:
 1. Hotel name - REQUIRED
 2. Check-in datetime in local time - OPTIONAL
 3. Check-out datetime in local time - OPTIONAL
 4. Room category/type - OPTIONAL
 5. Perks/amenities (array of strings) - OPTIONAL
 6. Confirmation number - OPTIONAL
+7. City (if mentioned in document) - OPTIONAL
+8. State/Region (if mentioned in document) - OPTIONAL
+9. Country (if mentioned in document) - OPTIONAL
 
 FOR TRANSFERS - EXTRACT THESE 8 FIELDS:
 1. Contact name/company (can be service description if no company name) - REQUIRED
@@ -53,7 +56,7 @@ FOR ACTIVITIES - EXTRACT THESE 9 FIELDS:
 8. Vehicle type (if transportation included) - OPTIONAL
 9. Confirmation number - OPTIONAL
 
-FOR RESTAURANTS - EXTRACT THESE 8 FIELDS:
+FOR RESTAURANTS - EXTRACT THESE 11 FIELDS:
 1. Restaurant name (full name from document) - REQUIRED
 2. Reservation datetime in local time - OPTIONAL
 3. End time (if specified) - OPTIONAL
@@ -62,6 +65,9 @@ FOR RESTAURANTS - EXTRACT THESE 8 FIELDS:
 6. Party size - OPTIONAL
 7. Confirmation number OR name booked under - OPTIONAL
 8. Dietary restrictions/special requests - OPTIONAL
+9. City (if mentioned in document) - OPTIONAL
+10. State/Region (if mentioned in document) - OPTIONAL
+11. Country (if mentioned in document) - OPTIONAL
 
 HOTEL IDENTIFICATION KEYWORDS:
 - Look for: "check in", "check-in", "check out", "check-out", "your stay", "hotel", "accommodation", "room", "suite", "booking", "reservation"
@@ -132,7 +138,10 @@ Return a JSON response with this structure:
       "checkOutDateTime": "2024-03-18T11:00:00",
       "roomCategory": "King Executive Suite",
       "perks": ["Free WiFi", "Executive Lounge Access"],
-      "confirmationNumber": "HTL456"
+      "confirmationNumber": "HTL456",
+      "city": "New York",
+      "state": "NY",
+      "country": "USA"
     },
     {
       "type": "transfer",
@@ -181,6 +190,7 @@ RULES:
 - For hotel perks: look for amenities like "Free WiFi", "Breakfast Included", "Credit, "Spa Access", "Late Checkout", "Room Upgrade", etc.
 - IMPORTANT: Better to leave clientBooked, class, and confirmationNumber blank/null than to guess incorrectly
 - Extract EVERY flight mentioned in the document
+- Activity titles should not include descriptors like private or group as they are captured in other fields
 - Return ONLY valid JSON, no explanations or markdown
 
 EXAMPLES:
@@ -232,8 +242,8 @@ Output: {"items": [{"type": "activity", "activityName": "Private Reykjavik Food 
 Input: "2:00 PM - 5:30 PM · Blue Lagoon - 2 x Signature Admissions. Please remember to bring swimwear. Booking reference: BL789"
 Output: {"items": [{"type": "activity", "activityName": "Blue Lagoon Signature Admissions", "activityTitle": "Blue Lagoon Spa Experience", "startDateTime": "2024-03-15T14:00:00", "endDateTime": "2024-03-15T17:30:00", "contactName": "Blue Lagoon", "service": "Group", "activityType": "Wellness", "vehicleType": null, "confirmationNumber": "BL789"}]}
 
-Input: "7:30 PM dinner reservation at Le Bernardin. Table for 2. Booked under Smith. French cuisine, chef's tasting menu."
-Output: {"items": [{"type": "restaurant", "restaurantName": "Le Bernardin", "reservationDateTime": "2024-03-15T19:30:00", "endDateTime": null, "contactName": null, "cuisineType": "French", "partySize": "2", "confirmationNumber": "Smith", "dietaryRequests": "chef's tasting menu"}]}
+Input: "7:30 PM dinner reservation at Le Bernardin. Table for 2. Booked under Smith. French cuisine, chef's tasting menu. New York, NY."
+Output: {"items": [{"type": "restaurant", "restaurantName": "Le Bernardin", "reservationDateTime": "2024-03-15T19:30:00", "endDateTime": null, "contactName": null, "cuisineType": "French", "partySize": "2", "confirmationNumber": "Smith", "dietaryRequests": "chef's tasting menu", "city": "New York", "state": "NY", "country": null}]}
 
-Input: "12:30 PM lunch at Osteria Francescana. Party of 4. Italian restaurant. Confirmation: OF4567. Vegetarian options requested."
-Output: {"items": [{"type": "restaurant", "restaurantName": "Osteria Francescana", "reservationDateTime": "2024-03-15T12:30:00", "endDateTime": null, "contactName": null, "cuisineType": "Italian", "partySize": "4", "confirmationNumber": "OF4567", "dietaryRequests": "Vegetarian options"}}]`;
+Input: "12:30 PM lunch at Osteria Francescana, Modena, Italy. Party of 4. Italian restaurant. Confirmation: OF4567. Vegetarian options requested."
+Output: {"items": [{"type": "restaurant", "restaurantName": "Osteria Francescana", "reservationDateTime": "2024-03-15T12:30:00", "endDateTime": null, "contactName": null, "cuisineType": "Italian", "partySize": "4", "confirmationNumber": "OF4567", "dietaryRequests": "Vegetarian options", "city": "Modena", "state": null, "country": "Italy"}}]`;

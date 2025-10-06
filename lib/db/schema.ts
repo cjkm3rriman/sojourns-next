@@ -124,6 +124,9 @@ export const places = pgTable('places', {
   type: placeTypeEnum('type').notNull(),
   description: text('description'),
 
+  // External IDs
+  googlePlaceId: text('google_place_id'), // Stable Google Places API ID for deduplication
+
   // Contact & location
   address: text('address'),
   city: text('city'),

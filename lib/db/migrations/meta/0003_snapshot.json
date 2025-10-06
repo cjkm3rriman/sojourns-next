@@ -108,26 +108,18 @@
         "documents_trip_id_trips_id_fk": {
           "name": "documents_trip_id_trips_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "trip_id"
-          ],
+          "columnsFrom": ["trip_id"],
           "tableTo": "trips",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "documents_uploaded_by_users_id_fk": {
           "name": "documents_uploaded_by_users_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "uploaded_by"
-          ],
+          "columnsFrom": ["uploaded_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -280,26 +272,18 @@
         "items_trip_id_trips_id_fk": {
           "name": "items_trip_id_trips_id_fk",
           "tableFrom": "items",
-          "columnsFrom": [
-            "trip_id"
-          ],
+          "columnsFrom": ["trip_id"],
           "tableTo": "trips",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "items_place_id_places_id_fk": {
           "name": "items_place_id_places_id_fk",
           "tableFrom": "items",
-          "columnsFrom": [
-            "place_id"
-          ],
+          "columnsFrom": ["place_id"],
           "tableTo": "places",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -353,26 +337,18 @@
         "memberships_user_id_users_id_fk": {
           "name": "memberships_user_id_users_id_fk",
           "tableFrom": "memberships",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "memberships_organization_id_organizations_id_fk": {
           "name": "memberships_organization_id_organizations_id_fk",
           "tableFrom": "memberships",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -433,16 +409,12 @@
       "uniqueConstraints": {
         "organizations_clerk_org_id_unique": {
           "name": "organizations_clerk_org_id_unique",
-          "columns": [
-            "clerk_org_id"
-          ],
+          "columns": ["clerk_org_id"],
           "nullsNotDistinct": false
         },
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "nullsNotDistinct": false
         }
       },
@@ -663,26 +635,18 @@
         "trips_agent_id_users_id_fk": {
           "name": "trips_agent_id_users_id_fk",
           "tableFrom": "trips",
-          "columnsFrom": [
-            "agent_id"
-          ],
+          "columnsFrom": ["agent_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "trips_organization_id_organizations_id_fk": {
           "name": "trips_organization_id_organizations_id_fk",
           "tableFrom": "trips",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -691,9 +655,7 @@
       "uniqueConstraints": {
         "trips_share_token_unique": {
           "name": "trips_share_token_unique",
-          "columns": [
-            "share_token"
-          ],
+          "columns": ["share_token"],
           "nullsNotDistinct": false
         }
       },
@@ -758,9 +720,7 @@
       "uniqueConstraints": {
         "users_clerk_user_id_unique": {
           "name": "users_clerk_user_id_unique",
-          "columns": [
-            "clerk_user_id"
-          ],
+          "columns": ["clerk_user_id"],
           "nullsNotDistinct": false
         }
       },
@@ -773,50 +733,27 @@
     "public.item_type": {
       "name": "item_type",
       "schema": "public",
-      "values": [
-        "flight",
-        "hotel",
-        "transfer",
-        "restaurant",
-        "activity"
-      ]
+      "values": ["flight", "hotel", "transfer", "restaurant", "activity"]
     },
     "public.membership_role": {
       "name": "membership_role",
       "schema": "public",
-      "values": [
-        "admin",
-        "agent",
-        "member"
-      ]
+      "values": ["admin", "agent", "member"]
     },
     "public.place_type": {
       "name": "place_type",
       "schema": "public",
-      "values": [
-        "hotel",
-        "restaurant",
-        "attraction",
-        "venue"
-      ]
+      "values": ["hotel", "restaurant", "attraction", "venue"]
     },
     "public.trip_status": {
       "name": "trip_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "planning",
-        "confirmed",
-        "cancelled"
-      ]
+      "values": ["draft", "planning", "confirmed", "cancelled"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "agent",
-        "traveler"
-      ]
+      "values": ["agent", "traveler"]
     }
   },
   "schemas": {},

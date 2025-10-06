@@ -103,6 +103,7 @@ export async function GET(
         originPlaceCountry: originPlace.country,
         originPlacePostalCode: originPlace.postalCode,
         originPlaceTimezone: originPlace.timezone,
+        originPlacePhone: originPlace.phone,
         // Destination place information
         destinationPlaceName: destinationPlace.name,
         destinationPlaceShortName: destinationPlace.shortName,

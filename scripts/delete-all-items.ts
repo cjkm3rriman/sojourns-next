@@ -20,7 +20,10 @@ async function deleteAllItems() {
   const db = getDb();
 
   // Get count of non-flight items first
-  const allItems = await db.select().from(items).where(ne(items.type, 'flight'));
+  const allItems = await db
+    .select()
+    .from(items)
+    .where(ne(items.type, 'flight'));
   console.log(`Found ${allItems.length} non-flight items in database`);
 
   if (allItems.length === 0) {

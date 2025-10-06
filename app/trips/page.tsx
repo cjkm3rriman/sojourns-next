@@ -76,7 +76,9 @@ export default function DashboardPage() {
   const [iconExistsCache, setIconExistsCache] = useState<
     Record<string, boolean>
   >({});
-  const [sortBy, setSortBy] = useState<'created' | 'startDate'>('created');
+  const [sortBy, setSortBy] = useState<'created' | 'startDate' | 'updated'>(
+    'created',
+  );
   const [tripItemCounts, setTripItemCounts] = useState<Record<string, number>>(
     {},
   );
@@ -198,6 +200,10 @@ export default function DashboardPage() {
       if (sortBy === 'created') {
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      } else if (sortBy === 'updated') {
+        return (
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         );
       } else {
         // Sort by start date - trips with no start date go to the end
@@ -371,7 +377,13 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={() =>
-                    setSortBy(sortBy === 'created' ? 'startDate' : 'created')
+                    setSortBy(
+                      sortBy === 'created'
+                        ? 'startDate'
+                        : sortBy === 'startDate'
+                          ? 'updated'
+                          : 'created',
+                    )
                   }
                   className="btn btn-golden input-rounded"
                   style={{
@@ -380,10 +392,14 @@ export default function DashboardPage() {
                     gap: '0.5rem',
                     whiteSpace: 'nowrap',
                   }}
-                  title={`Currently sorting by ${sortBy === 'created' ? 'creation date' : 'trip start date'}`}
+                  title={`Currently sorting by ${sortBy === 'created' ? 'creation date' : sortBy === 'updated' ? 'last updated' : 'trip start date'}`}
                 >
                   <Shuffle size={16} />
-                  {sortBy === 'created' ? 'Created' : 'Trip Date'}
+                  {sortBy === 'created'
+                    ? 'Created'
+                    : sortBy === 'updated'
+                      ? 'Updated'
+                      : 'Trip Date'}
                 </button>
               </div>
               <Link
