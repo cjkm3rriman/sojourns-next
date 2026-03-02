@@ -35,16 +35,15 @@ export async function findOrCreateAirport(
       return alreadyCreated.id;
     }
 
-    // Airport doesn't exist, query FlightAware airports API
+    // Airport doesn't exist, query AirLabs airports API
     console.log(
-      `Airport ${iataCode} not found, querying FlightAware airports API`,
+      `Airport ${iataCode} not found, querying AirLabs airports API`,
     );
 
     const airportResponse = await fetch(
-      `https://aeroapi.flightaware.com/aeroapi/airports/${iataCode}`,
+      `https://airlabs.co/api/v9/airports?api_key=${process.env.AIRLABS_API_KEY}&iata_code=${iataCode}`,
       {
         headers: {
-          'x-apikey': process.env.FLIGHTAWARE_API_KEY!,
           Accept: 'application/json',
         },
       },
@@ -52,18 +51,22 @@ export async function findOrCreateAirport(
 
     if (!airportResponse.ok) {
       console.warn(
-        `FlightAware airports API error for ${iataCode}: ${airportResponse.status} ${airportResponse.statusText}`,
+        `AirLabs airports API error for ${iataCode}: ${airportResponse.status} ${airportResponse.statusText}`,
       );
       return null;
     }
 
-    const airportData = await airportResponse.json();
-    console.log(
-      `FlightAware airport data for ${iataCode}:`,
-      JSON.stringify(airportData, null, 2),
-    );
+    const airportDataResponse = await airportResponse.json();
 
-    // Create new airport place from FlightAware data
+    // AirLabs returns an array in the 'response' field
+    if (!airportDataResponse.response || airportDataResponse.response.length === 0) {
+      console.warn(`No airport data found for ${iataCode} in AirLabs response`);
+      return null;
+    }
+
+    const airportData = airportDataResponse.response[0];
+
+    // Create new airport place from AirLabs data
     const [newAirport] = await db
       .insert(places)
       .values({
@@ -71,10 +74,10 @@ export async function findOrCreateAirport(
         shortName: iataCode,
         type: 'airport',
         city: airportData.city || null,
-        state: airportData.state || null,
+        state: null, // AirLabs doesn't provide state information
         country: airportData.country_code || null,
-        lat: airportData.latitude || null,
-        lng: airportData.longitude || null,
+        lat: airportData.lat || null,
+        lng: airportData.lng || null,
         timezone: airportData.timezone || null,
         description: `Airport (${iataCode})`,
       })
@@ -122,18 +125,18 @@ export async function processFlightItem(
       return;
     }
 
-    let oagFlightData = null;
+    let airlabsFlightData = null;
 
-    // Call OAG API for each flight
+    // Call AirLabs API for each flight
     if (item.flightNumber) {
       try {
-        // Parse flight number into carrier code and flight number for OAG
+        // Parse flight number into carrier code and flight number for AirLabs
         const flightIdent = item.flightNumber.replace(/\s+/g, ''); // Remove spaces (AA 123 -> AA123)
-        const match = flightIdent.match(/^([A-Z]{2,3})(\d+)$/);
+        const match = flightIdent.match(/^([A-Z0-9]{2})(\d+)$/);
 
         if (!match) {
           console.warn(
-            `Invalid flight number format for OAG: ${item.flightNumber}`,
+            `Invalid flight number format for AirLabs: ${item.flightNumber}`,
           );
           return;
         }
@@ -142,83 +145,72 @@ export async function processFlightItem(
         const flightNumber = match[2];
 
         // Prepare departure and arrival dates from extracted data
-        let departureDate = '';
-        let arrivalDate = '';
-
-        if (item.departureDateTime) {
-          departureDate = new Date(item.departureDateTime)
-            .toISOString()
-            .split('T')[0]; // YYYY-MM-DD
-        }
-
-        if (item.arrivalDateTime) {
-          arrivalDate = new Date(item.arrivalDateTime)
-            .toISOString()
-            .split('T')[0]; // YYYY-MM-DD
-        }
+        const departureDateISO = item.departureDateTime
+          ? new Date(item.departureDateTime).toISOString().split('T')[0]
+          : null; // YYYY-MM-DD
+        const arrivalDateISO = item.arrivalDateTime
+          ? new Date(item.arrivalDateTime).toISOString().split('T')[0]
+          : null; // YYYY-MM-DD
 
         console.log(
-          `Calling OAG API for flight ${carrierCode}${flightNumber} - Departure: ${departureDate || 'not specified'}, Arrival: ${arrivalDate || 'not specified'}`,
+          `Calling AirLabs API for flight ${carrierCode}${flightNumber}`,
         );
 
-        // Call OAG Flight Instances API with both dates (with retry logic)
+        // Call AirLabs Routes API
         let retryCount = 0;
         const maxRetries = 2;
 
-        while (retryCount <= maxRetries && !oagFlightData) {
+        while (retryCount <= maxRetries && !airlabsFlightData) {
           if (retryCount > 0) {
             console.log(
-              `Retrying OAG API call for ${carrierCode}${flightNumber} (attempt ${retryCount + 1})`,
+              `Retrying AirLabs API call for ${carrierCode}${flightNumber} (attempt ${retryCount + 1})`,
             );
-            // Add a small delay before retry
             await new Promise((resolve) =>
               setTimeout(resolve, 1000 * retryCount),
             );
           }
 
           try {
-            const oagResponse = await fetch(
-              `https://api.oag.com/flight-instances/?version=v2&carrierCode=${carrierCode}&FlightNumber=${flightNumber}&CodeType=IATA&DepartureDateTime=${departureDate}&ArrivalDateTime=${arrivalDate}`,
+            const airlabsResponse = await fetch(
+              `https://airlabs.co/api/v9/routes?api_key=${process.env.AIRLABS_API_KEY}&airline_iata=${carrierCode}&flight_number=${flightNumber}`,
               {
                 headers: {
-                  'Subscription-Key': process.env.OAG_PRIMARY_KEY!,
                   Accept: 'application/json',
                 },
               },
             );
 
-            if (oagResponse.ok) {
-              oagFlightData = await oagResponse.json();
+            if (airlabsResponse.ok) {
+              airlabsFlightData = await airlabsResponse.json();
               console.log(
-                `OAG response for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}):`,
-                JSON.stringify(oagFlightData, null, 2),
+                `AirLabs response for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}): Success`,
               );
               break; // Success, exit retry loop
             } else {
               console.warn(
-                `OAG API error for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}): ${oagResponse.status} ${oagResponse.statusText}`,
+                `AirLabs API error for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}): ${airlabsResponse.status} ${airlabsResponse.statusText}`,
               );
-              const errorText = await oagResponse.text();
-              console.warn(`OAG error response:`, errorText);
+              const errorText = await airlabsResponse.text();
+              console.warn(`AirLabs error response:`, errorText);
             }
           } catch (fetchError) {
             console.warn(
-              `OAG API fetch error for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}):`,
+              `AirLabs API fetch error for ${carrierCode}${flightNumber} (attempt ${retryCount + 1}):`,
               fetchError,
             );
           }
 
           retryCount++;
         }
-      } catch (oagError) {
+      } catch (apiError) {
         console.error(
-          `Error calling OAG API for flight ${item.flightNumber}:`,
-          oagError,
+          `Error calling AirLabs API for flight ${item.flightNumber}:`,
+          apiError,
         );
       }
     }
 
-    // Map OAG data to our structure
+    // Map flight data to our structure
     let mappedStartDate = item.departureDateTime || null;
     let mappedEndDate = item.arrivalDateTime || null;
     // Capitalize class if present
@@ -228,79 +220,149 @@ export async function processFlightItem(
 
     let mappedData = {
       flightNumber: item.flightNumber || null,
-      carrierCode: null, // Will be populated from OAG if available
+      carrierCode: null, // Will be populated from API if available
       class: capitalizedClass, // Class of service from AI extraction (capitalized)
     };
 
-    // If we have OAG data, use the first flight result
-    if (oagFlightData && oagFlightData.data && oagFlightData.data.length > 0) {
-      const firstFlight = oagFlightData.data[0];
+    // If we have AirLabs data, use the first flight result
+    if (
+      airlabsFlightData &&
+      airlabsFlightData.response &&
+      airlabsFlightData.response.length > 0
+    ) {
+      const firstFlight = airlabsFlightData.response[0];
 
-      // Extract scheduled times from OAG response
-      if (firstFlight.departure && firstFlight.arrival) {
-        // Use departure timing - combine date and time
-        if (firstFlight.departure.date && firstFlight.departure.time) {
-          mappedStartDate = `${firstFlight.departure.date.local}T${firstFlight.departure.time.local}`;
-          console.log(`Using OAG departure time (local): ${mappedStartDate}`);
-        }
+      const departureDateISO = item.departureDateTime
+        ? new Date(item.departureDateTime).toISOString().split('T')[0]
+        : null;
+      const arrivalDateISO = item.arrivalDateTime
+        ? new Date(item.arrivalDateTime).toISOString().split('T')[0]
+        : null;
 
-        // Use arrival timing - combine date and time
-        if (firstFlight.arrival.date && firstFlight.arrival.time) {
-          mappedEndDate = `${firstFlight.arrival.date.local}T${firstFlight.arrival.time.local}`;
-          console.log(`Using OAG arrival time (local): ${mappedEndDate}`);
+      // Use departure timing - combine date from extraction and time from AirLabs
+      if (departureDateISO && firstFlight.dep_time) {
+        mappedStartDate = `${departureDateISO}T${firstFlight.dep_time}`;
+        console.log(`Using AirLabs departure time (local): ${mappedStartDate}`);
+      }
+
+      // Use arrival timing - combine date from extraction and time from AirLabs
+      if (arrivalDateISO && firstFlight.arr_time) {
+        mappedEndDate = `${arrivalDateISO}T${firstFlight.arr_time}`;
+        console.log(`Using AirLabs arrival time (local): ${mappedEndDate}`);
+      } else if (departureDateISO && firstFlight.arr_time) {
+        // Arrival date not extracted, so we infer it
+        if (firstFlight.arr_time < firstFlight.dep_time) {
+          // Overnight flight, add one day to departure date
+          const nextDay = new Date(departureDateISO);
+          nextDay.setDate(nextDay.getDate() + 1);
+          const nextDayISO = nextDay.toISOString().split('T')[0];
+          mappedEndDate = `${nextDayISO}T${firstFlight.arr_time}`;
+          console.log(
+            `Inferred overnight flight, using AirLabs arrival time: ${mappedEndDate}`,
+          );
+        } else {
+          // Same day flight
+          mappedEndDate = `${departureDateISO}T${firstFlight.arr_time}`;
+          console.log(
+            `Inferred same-day flight, using AirLabs arrival time: ${mappedEndDate}`,
+          );
         }
       }
 
       // Add essential flight information to data field
-      if (firstFlight.carrier && firstFlight.flightNumber) {
+      if (firstFlight.airline_iata && firstFlight.flight_number) {
         mappedData = {
-          carrierCode: firstFlight.carrier.iata || null,
-          flightNumber: firstFlight.flightNumber || null,
+          carrierCode: firstFlight.airline_iata || null,
+          flightNumber: firstFlight.flight_number || null,
           class: mappedData.class, // Preserve class from AI extraction
         };
 
         console.log(
-          `Mapped OAG flight data: Carrier=${firstFlight.carrier.iata}, Flight=${firstFlight.flightNumber}, Class=${mappedData.class}`,
+          `Mapped AirLabs flight data: Carrier=${firstFlight.airline_iata}, Flight=${firstFlight.flight_number}, Class=${mappedData.class}`,
         );
+      }
+
+      // Calculate missing departure or arrival time using duration (only if one is missing)
+      if (firstFlight.duration && (mappedStartDate || mappedEndDate)) {
+        const hasStart = mappedStartDate !== null;
+        const hasEnd = mappedEndDate !== null;
+
+        // Helper to format date as local ISO string (YYYY-MM-DDTHH:MM:SS)
+        const formatLocalISO = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          const seconds = String(date.getSeconds()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        };
+
+        // Only calculate if exactly one is missing
+        if (hasStart && !hasEnd) {
+          // Calculate arrival from departure + duration
+          const durationMinutes = firstFlight.duration;
+          const departureTime = new Date(mappedStartDate);
+          const arrivalTime = new Date(
+            departureTime.getTime() + durationMinutes * 60 * 1000,
+          );
+          mappedEndDate = formatLocalISO(arrivalTime);
+          console.log(
+            `Calculated arrival time from duration: ${mappedEndDate} (departure + ${durationMinutes} min)`,
+          );
+        } else if (!hasStart && hasEnd) {
+          // Calculate departure from arrival - duration
+          const durationMinutes = firstFlight.duration;
+          const arrivalTime = new Date(mappedEndDate);
+          const departureTime = new Date(
+            arrivalTime.getTime() - durationMinutes * 60 * 1000,
+          );
+          mappedStartDate = formatLocalISO(departureTime);
+          console.log(
+            `Calculated departure time from duration: ${mappedStartDate} (arrival - ${durationMinutes} min)`,
+          );
+        }
       }
     }
 
-    // Handle airport places and terminal info for origin and destination using OAG data + FlightAware airport details
+    // Handle airport places and terminal info for origin and destination using AirLabs data
     let originPlaceId = null;
     let destinationPlaceId = null;
     let originLocationSpecific = null;
     let destinationLocationSpecific = null;
 
-    if (oagFlightData && oagFlightData.data && oagFlightData.data.length > 0) {
-      const firstFlight = oagFlightData.data[0];
+    if (
+      airlabsFlightData &&
+      airlabsFlightData.response &&
+      airlabsFlightData.response.length > 0
+    ) {
+      const firstFlight = airlabsFlightData.response[0];
 
-      // Process origin airport from OAG departure data
-      if (firstFlight.departure?.airport?.iata) {
+      // Process origin airport from AirLabs departure data
+      if (firstFlight.dep_iata) {
         originPlaceId = await findOrCreateAirport(
-          firstFlight.departure.airport.iata,
+          firstFlight.dep_iata,
           db,
           createdPlaces,
         );
-        console.log(
-          `Origin airport: ${firstFlight.departure.airport.iata} -> ${originPlaceId}`,
-        );
+        console.log(`Origin airport: ${firstFlight.dep_iata} -> ${originPlaceId}`);
       }
 
-      // Process destination airport from OAG arrival data
-      if (firstFlight.arrival?.airport?.iata) {
+      // Process destination airport from AirLabs arrival data
+      if (firstFlight.arr_iata) {
         destinationPlaceId = await findOrCreateAirport(
-          firstFlight.arrival.airport.iata,
+          firstFlight.arr_iata,
           db,
           createdPlaces,
         );
         console.log(
-          `Destination airport: ${firstFlight.arrival.airport.iata} -> ${destinationPlaceId}`,
+          `Destination airport: ${firstFlight.arr_iata} -> ${destinationPlaceId}`,
         );
       }
 
-      // Extract terminal information from OAG format
-      if (firstFlight.departure?.terminal) {
-        const terminal = firstFlight.departure.terminal.trim();
+      // Extract terminal information from AirLabs format
+      if (firstFlight.dep_terminals && firstFlight.dep_terminals.length > 0) {
+        const terminal = firstFlight.dep_terminals[0].trim();
         // If single number or letter, prefix with 'T'
         originLocationSpecific = /^[0-9A-Za-z]$/.test(terminal)
           ? `T${terminal}`
@@ -308,8 +370,8 @@ export async function processFlightItem(
         console.log(`Origin terminal: ${originLocationSpecific}`);
       }
 
-      if (firstFlight.arrival?.terminal) {
-        const terminal = firstFlight.arrival.terminal.trim();
+      if (firstFlight.arr_terminals && firstFlight.arr_terminals.length > 0) {
+        const terminal = firstFlight.arr_terminals[0].trim();
         // If single number or letter, prefix with 'T'
         destinationLocationSpecific = /^[0-9A-Za-z]$/.test(terminal)
           ? `T${terminal}`
@@ -318,14 +380,20 @@ export async function processFlightItem(
       }
     } else {
       console.warn(
-        `No OAG data available for flight ${item.flightNumber}, will attempt fallback airport creation if possible`,
+        `No AirLabs data available for flight ${item.flightNumber}, will attempt fallback airport creation if possible`,
       );
 
       // TODO: Add fallback logic here to extract airport codes from flight route info
       // For now, we'll rely on the user to manually add airport information
     }
 
-    // Create processed item with mapped OAG data
+    // Look up place names from createdPlaces array
+    const originPlace = createdPlaces.find((p) => p.id === originPlaceId);
+    const destinationPlace = createdPlaces.find(
+      (p) => p.id === destinationPlaceId,
+    );
+
+    // Create processed item with mapped AirLabs data
     const processedItem = {
       type: 'flight',
       title: '', // Will be auto-generated
@@ -334,6 +402,10 @@ export async function processFlightItem(
       endDate: mappedEndDate,
       originPlaceId,
       destinationPlaceId,
+      originPlaceName: originPlace?.name || null,
+      originPlaceCity: originPlace?.city || null,
+      destinationPlaceName: destinationPlace?.name || null,
+      destinationPlaceCity: destinationPlace?.city || null,
       originLocationSpecific,
       destinationLocationSpecific,
       confirmationNumber: item.confirmationNumber || null,
@@ -342,7 +414,7 @@ export async function processFlightItem(
     };
 
     console.log(
-      `Flight ${item.flightNumber}: originPlaceId=${originPlaceId}, destinationPlaceId=${destinationPlaceId}`,
+      `Flight ${item.flightNumber}: originPlaceId=${originPlaceId} (${originPlace?.name}), destinationPlaceId=${destinationPlaceId} (${destinationPlace?.name})`,
     );
 
     processedItems.push(processedItem);

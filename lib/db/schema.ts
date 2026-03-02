@@ -207,6 +207,26 @@ export const items = pgTable('items', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Clients table - CRM foundation for traveler profiles
+export const clients = pgTable('clients', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  address: text('address'),
+  travelPreferences: text('travel_preferences'),
+  notes: text('notes'),
+  organizationId: uuid('organization_id')
+    .references(() => organizations.id)
+    .notNull(),
+  agentId: uuid('agent_id')
+    .references(() => users.id)
+    .notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Documents table - track uploaded files and their processing status
 export const documents = pgTable('documents', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -302,6 +322,17 @@ export const documentsRelations = relations(documents, ({ one }) => ({
   }),
   uploadedByUser: one(users, {
     fields: [documents.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+export const clientsRelations = relations(clients, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [clients.organizationId],
+    references: [organizations.id],
+  }),
+  agent: one(users, {
+    fields: [clients.agentId],
     references: [users.id],
   }),
 }));

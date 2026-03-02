@@ -78,7 +78,7 @@ export async function findOrCreateRestaurant(
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': googlePlacesApiKey,
           'X-Goog-FieldMask':
-            'places.displayName,places.formattedAddress,places.addressComponents,places.location,places.id,places.internationalPhoneNumber,places.websiteUri,places.editorialSummary,places.utcOffsetMinutes,places.types,places.primaryType',
+            'places.displayName,places.formattedAddress,places.addressComponents,places.location,places.id,places.internationalPhoneNumber,places.websiteUri,places.editorialSummary,places.utcOffsetMinutes,places.types,places.primaryType,places.photos',
         },
         body: JSON.stringify({
           textQuery: searchQuery,
@@ -219,6 +219,24 @@ export async function findOrCreateRestaurant(
       timezone = `UTC${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
 
+    // Fetch photo URLs from Google Places
+    let photoUrls: string[] = [];
+    if (place.photos && place.photos.length > 0) {
+      console.log(`Fetching ${Math.min(place.photos.length, 5)} photos for ${restaurantName}`);
+      // Take up to 5 photos
+      const photosToFetch = place.photos.slice(0, 5);
+      for (const photo of photosToFetch) {
+        try {
+          // Construct photo URL with max dimensions
+          const photoUrl = `https://places.googleapis.com/v1/${photo.name}/media?key=${googlePlacesApiKey}&maxHeightPx=800&maxWidthPx=800`;
+          photoUrls.push(photoUrl);
+        } catch (photoError) {
+          console.warn(`Error processing photo for ${restaurantName}:`, photoError);
+        }
+      }
+      console.log(`Added ${photoUrls.length} photo URLs for ${restaurantName}`);
+    }
+
     // Create new restaurant place from Google Places data
     const [newRestaurant] = await db
       .insert(places)
@@ -238,6 +256,7 @@ export async function findOrCreateRestaurant(
         phone: place.internationalPhoneNumber || null,
         website: place.websiteUri || null,
         description: place.editorialSummary?.text || 'Restaurant',
+        photos: photoUrls.length > 0 ? JSON.stringify(photoUrls) : null,
       })
       .returning();
 
@@ -329,7 +348,7 @@ export async function findOrCreateHotel(
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': googlePlacesApiKey,
           'X-Goog-FieldMask':
-            'places.displayName,places.formattedAddress,places.addressComponents,places.location,places.id,places.internationalPhoneNumber,places.websiteUri,places.editorialSummary,places.utcOffsetMinutes',
+            'places.displayName,places.formattedAddress,places.addressComponents,places.location,places.id,places.internationalPhoneNumber,places.websiteUri,places.editorialSummary,places.utcOffsetMinutes,places.photos',
         },
         body: JSON.stringify({
           textQuery: searchQuery,
@@ -461,6 +480,24 @@ export async function findOrCreateHotel(
       timezone = `UTC${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
 
+    // Fetch photo URLs from Google Places
+    let photoUrls: string[] = [];
+    if (place.photos && place.photos.length > 0) {
+      console.log(`Fetching ${Math.min(place.photos.length, 5)} photos for ${hotelName}`);
+      // Take up to 5 photos
+      const photosToFetch = place.photos.slice(0, 5);
+      for (const photo of photosToFetch) {
+        try {
+          // Construct photo URL with max dimensions
+          const photoUrl = `https://places.googleapis.com/v1/${photo.name}/media?key=${googlePlacesApiKey}&maxHeightPx=800&maxWidthPx=800`;
+          photoUrls.push(photoUrl);
+        } catch (photoError) {
+          console.warn(`Error processing photo for ${hotelName}:`, photoError);
+        }
+      }
+      console.log(`Added ${photoUrls.length} photo URLs for ${hotelName}`);
+    }
+
     // Create new hotel place from Google Places data
     const [newHotel] = await db
       .insert(places)
@@ -480,6 +517,7 @@ export async function findOrCreateHotel(
         phone: place.internationalPhoneNumber || null,
         website: place.websiteUri || null,
         description: place.editorialSummary?.text || 'Hotel',
+        photos: photoUrls.length > 0 ? JSON.stringify(photoUrls) : null,
       })
       .returning();
 

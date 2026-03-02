@@ -8,6 +8,7 @@ import FlightItem from '@/components/trip/FlightItem';
 import HotelItem from '@/components/trip/HotelItem';
 import TransferItem from '@/components/trip/TransferItem';
 import ActivityItem from '@/components/trip/ActivityItem';
+import PdfViewer from '@/components/PdfViewer';
 import {
   Navigation,
   MapPin,
@@ -42,6 +43,8 @@ import {
   Moon,
   Tag,
   Activity,
+  ZoomIn,
+  ZoomOut,
 } from 'react-feather';
 
 interface Trip {
@@ -123,6 +126,9 @@ export default function TripDetailPage() {
   const [iconExists, setIconExists] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [pdfScale, setPdfScale] = useState<number>(1.0);
+  const [addingToItinerary, setAddingToItinerary] = useState(false);
+  const [itineraryText, setItineraryText] = useState('');
   const milesSrc = '/images/miles.png?v=7';
 
   const shortenFilename = (
@@ -702,33 +708,73 @@ export default function TripDetailPage() {
                   <p style={{ margin: 0, padding: 0, fontSize: '1rem' }}>
                     {viewingPdf.originalName}
                   </p>
-                  <button
-                    onClick={() => setViewingPdf(null)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      cursor: 'pointer',
-                      padding: '0.25rem',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <X size={20} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                      onClick={() => setPdfScale((prev) => Math.max(prev - 0.25, 0.5))}
+                      disabled={pdfScale <= 0.5}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        cursor: pdfScale <= 0.5 ? 'not-allowed' : 'pointer',
+                        padding: '0.25rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: pdfScale <= 0.5 ? 0.3 : 1,
+                      }}
+                      title="Zoom out"
+                    >
+                      <ZoomOut size={20} />
+                    </button>
+                    <button
+                      onClick={() => setPdfScale((prev) => Math.min(prev + 0.25, 3.0))}
+                      disabled={pdfScale >= 3.0}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        cursor: pdfScale >= 3.0 ? 'not-allowed' : 'pointer',
+                        padding: '0.25rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: pdfScale >= 3.0 ? 0.3 : 1,
+                      }}
+                      title="Zoom in"
+                    >
+                      <ZoomIn size={20} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setViewingPdf(null);
+                        setPdfScale(1.0);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        cursor: 'pointer',
+                        padding: '0.25rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
-                <iframe
-                  src={`/api/trips/${tripId}/documents/${viewingPdf.id}/view`}
-                  style={{
-                    width: '100%',
-                    height: 'calc(100% - 60px)',
-                    border: 'none',
-                    borderRadius: '4px',
-                  }}
-                  title={viewingPdf.originalName}
-                />
+                <div style={{ height: 'calc(100% - 60px)' }}>
+                  <PdfViewer
+                    url={`/api/trips/${tripId}/documents/${viewingPdf.id}/view`}
+                    filename={viewingPdf.originalName}
+                    scale={pdfScale}
+                  />
+                </div>
               </div>
             ) : (
               <div
@@ -1069,6 +1115,9 @@ export default function TripDetailPage() {
                       }}
                     >
                       <textarea
+                        value={itineraryText}
+                        onChange={(e) => setItineraryText(e.target.value)}
+                        disabled={addingToItinerary}
                         placeholder="Type or paste details on one or more flights, hotels, transfers, restaurant reservations or activities."
                         style={{
                           width: '100%',
@@ -1079,7 +1128,7 @@ export default function TripDetailPage() {
                           color: 'white',
                           fontSize: '0.9rem',
                           fontFamily: 'inherit',
-                          resize: 'none',
+                          resize: 'vertical',
                           height: '80px',
                           boxSizing: 'border-box',
                           transition: 'all 0.2s ease',
@@ -1103,9 +1152,75 @@ export default function TripDetailPage() {
                           justifyContent: 'flex-start',
                         }}
                       >
-                        <button className="btn btn-golden btn-auto">
-                          <PlusCircle size={16} />
-                          Add To Itinerary
+                        <button
+                          className="btn btn-golden btn-auto"
+                          disabled={addingToItinerary || !itineraryText.trim()}
+                          onClick={async () => {
+                            if (!itineraryText.trim()) {
+                              alert('Please enter some text to analyze');
+                              return;
+                            }
+
+                            setAddingToItinerary(true);
+                            try {
+                              const response = await fetch(
+                                `/api/trips/${tripId}/add-text`,
+                                {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({ text: itineraryText }),
+                                },
+                              );
+
+                              if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(
+                                  errorData.userMessage || errorData.error,
+                                );
+                              }
+
+                              const data = await response.json();
+
+                              // Success feedback
+                              alert(
+                                `Analysis complete! Added ${data.createdItems} items and ${data.createdPlaces} places.`,
+                              );
+
+                              // Clear textarea
+                              setItineraryText('');
+
+                              // Refresh items list
+                              const itemsResponse = await fetch(
+                                `/api/trips/${tripId}/items`,
+                              );
+                              if (itemsResponse.ok) {
+                                const itemsData = await itemsResponse.json();
+                                setItems(itemsData.items || []);
+                              }
+                            } catch (error) {
+                              alert(
+                                error instanceof Error
+                                  ? `Failed to analyze: ${error.message}`
+                                  : 'Failed to analyze text',
+                              );
+                            } finally {
+                              setAddingToItinerary(false);
+                            }
+                          }}
+                        >
+                          {addingToItinerary ? (
+                            <>
+                              <Cpu size={16} />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <PlusCircle size={16} />
+                              Add To Itinerary
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -1332,8 +1447,16 @@ export default function TripDetailPage() {
                           }}
                           style={{ cursor: 'pointer' }}
                         >
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                          {count !== 1 ? 's' : ''}{' '}
+                          {(() => {
+                            const capitalize = (str: string) =>
+                              str.charAt(0).toUpperCase() + str.slice(1);
+                            const pluralize = (type: string, count: number) => {
+                              if (count === 1) return capitalize(type);
+                              if (type === 'activity') return 'Activities';
+                              return capitalize(type) + 's';
+                            };
+                            return pluralize(type, count);
+                          })()}{' '}
                           <div className="pill-count">{count}</div>
                         </span>
                       ));

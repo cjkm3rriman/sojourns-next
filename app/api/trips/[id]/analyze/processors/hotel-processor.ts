@@ -71,6 +71,9 @@ export async function processHotelItem(
     }
   }
 
+  // Look up place name from createdPlaces array
+  const hotelPlace = createdPlaces.find((p) => p.id === hotelPlaceId);
+
   const processedItem = {
     type: 'hotel',
     title: item.hotelName || 'Hotel Stay',
@@ -79,6 +82,8 @@ export async function processHotelItem(
     endDate: checkOutDate,
     originPlaceId: hotelPlaceId,
     destinationPlaceId: null,
+    originPlaceName: hotelPlace?.name || null,
+    originPlaceCity: hotelPlace?.city || null,
     originLocationSpecific: null, // TODO: Room number if available later
     destinationLocationSpecific: null,
     confirmationNumber: item.confirmationNumber || null,
@@ -90,6 +95,8 @@ export async function processHotelItem(
     },
   };
 
-  console.log(`Hotel ${item.hotelName}: originPlaceId=${hotelPlaceId}`);
+  console.log(
+    `Hotel ${item.hotelName}: originPlaceId=${hotelPlaceId} (${hotelPlace?.name})`,
+  );
   processedItems.push(processedItem);
 }

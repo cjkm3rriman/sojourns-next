@@ -3,8 +3,10 @@ import NextDynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlusCircle, Search, Shuffle } from 'react-feather';
+import { PlusCircle, Search, Shuffle, ChevronsDown } from 'react-feather';
 import { useAutoSync } from '@/lib/hooks/useAutoSync';
+import PageSwitcher from '@/components/PageSwitcher';
+import SojournsHeader from '@/components/SojournsHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,22 +20,8 @@ const SignedOut = NextDynamic(
   { ssr: false },
 );
 
-const SignOutButton = NextDynamic(
-  () =>
-    import('@clerk/nextjs').then((m) => {
-      const { SignOutButton } = m;
-      return {
-        default: SignOutButton,
-      };
-    }),
-  { ssr: false },
-);
-
-const UserInfo = NextDynamic(
-  () =>
-    import('../user-info-optimized').then((m) => ({
-      default: m.UserInfoOptimized,
-    })),
+const UserAvatarMenu = NextDynamic(
+  () => import('@/components/UserAvatarMenu'),
   { ssr: false },
 );
 
@@ -83,6 +71,28 @@ export default function DashboardPage() {
     {},
   );
   const [agentImages, setAgentImages] = useState<Record<string, string>>({});
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
+
+  // Available trip statuses
+  const availableStatuses = ['draft', 'proposal', 'confirmed', 'cancelled'];
+
+  // Close status filter when clicking outside
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showStatusFilter && !target.closest('[data-status-filter]')) {
+        setShowStatusFilter(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showStatusFilter]);
 
   // Check if trip icons exist
   useEffect(() => {
@@ -194,7 +204,15 @@ export default function DashboardPage() {
       const query = searchQuery.toLowerCase();
       const destination = (trip.destination || '').toLowerCase();
       const clientName = trip.clientName.toLowerCase();
-      return destination.includes(query) || clientName.includes(query);
+      const matchesSearch =
+        destination.includes(query) || clientName.includes(query);
+
+      // If no statuses selected, show all trips
+      const matchesStatus =
+        selectedStatuses.length === 0 ||
+        selectedStatuses.includes(trip.status);
+
+      return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       if (sortBy === 'created') {
@@ -227,86 +245,7 @@ export default function DashboardPage() {
         boxSizing: 'border-box',
       }}
     >
-      <header
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%) translateZ(0)',
-          WebkitTransform: 'translateX(-50%) translateZ(0)',
-          zIndex: 1000,
-          display: 'inline-block',
-          borderRadius: '40px',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Light blur layer - covers full header */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Medium blur layer - fades from top to middle */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backdropFilter: 'blur(15px)',
-            WebkitBackdropFilter: 'blur(15px)',
-            mask: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 70%)',
-            WebkitMask:
-              'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Heavy blur layer - strongest at top */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            mask: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0) 50%)',
-            WebkitMask:
-              'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0) 50%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1
-            style={{
-              fontFamily: 'var(--font-sojourns), serif',
-              fontWeight: 400,
-              fontSize: '1.8rem',
-              margin: 0,
-              padding: '0.8rem 0.8rem 0.5rem 0.8rem',
-              display: 'block',
-              textTransform: 'uppercase',
-              textShadow: [
-                '0 2px 4px rgba(0, 0, 0, 0.3)',
-                '0 0 10px rgba(255, 255, 255, 0.037)',
-                '0 0 20px rgba(255, 255, 255, 0.025)',
-                '0 0 30px rgba(255, 255, 255, 0.012)',
-              ].join(', '),
-            }}
-          >
-            Sojourns
-          </h1>
-        </div>
-      </header>
+      <SojournsHeader />
       <main
         style={{
           display: 'flex',
@@ -324,15 +263,7 @@ export default function DashboardPage() {
           }}
         >
           <SignedIn>
-            <div
-              style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
+            <div className="title-bar">
               <div
                 style={{
                   display: 'flex',
@@ -340,12 +271,20 @@ export default function DashboardPage() {
                   alignItems: 'center',
                 }}
               >
+                <PageSwitcher />
+                <Link
+                  href="/trip/create"
+                  className="btn btn-green"
+                  style={{ textDecoration: 'none', width: 'fit-content' }}
+                >
+                  <PlusCircle size={16} /> New
+                </Link>
                 <div
                   style={{
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
-                    minWidth: '400px',
+                    minWidth: '300px',
                   }}
                 >
                   <Search
@@ -401,17 +340,142 @@ export default function DashboardPage() {
                       ? 'Updated'
                       : 'Trip Date'}
                 </button>
+                <div style={{ position: 'relative' }} data-status-filter>
+                  <button
+                    onClick={() => setShowStatusFilter(!showStatusFilter)}
+                    className="btn btn-golden input-rounded"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Filter by status"
+                  >
+                    <ChevronsDown size={16} />
+                    Status
+                    {selectedStatuses.length > 0 && (
+                      <span
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          borderRadius: '10px',
+                          padding: '0.1rem 0.5rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {selectedStatuses.length}
+                      </span>
+                    )}
+                  </button>
+                  {showStatusFilter && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 0.5rem)',
+                        left: 0,
+                        backgroundColor: 'rgba(20, 20, 20, 0.75)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '8px',
+                        padding: '0.75rem',
+                        minWidth: '200px',
+                        zIndex: 1000,
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        {availableStatuses.map((status) => (
+                          <label
+                            key={status}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              cursor: 'pointer',
+                              padding: '0.5rem',
+                              borderRadius: '4px',
+                              transition: 'background-color 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                'rgba(255, 255, 255, 0.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                'transparent';
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedStatuses.includes(status)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedStatuses([
+                                    ...selectedStatuses,
+                                    status,
+                                  ]);
+                                } else {
+                                  setSelectedStatuses(
+                                    selectedStatuses.filter(
+                                      (s) => s !== status,
+                                    ),
+                                  );
+                                }
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                width: '18px',
+                                height: '18px',
+                                accentColor: '#d4af37',
+                                borderRadius: '4px',
+                              }}
+                            />
+                            <span style={{ textTransform: 'capitalize' }}>
+                              {status}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {selectedStatuses.length > 0 && (
+                        <button
+                          onClick={() => setSelectedStatuses([])}
+                          style={{
+                            marginTop: '0.75rem',
+                            padding: '0.5rem',
+                            width: '100%',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            borderRadius: '6px',
+                            color: 'white',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'rgba(255, 255, 255, 0.12)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'rgba(255, 255, 255, 0.08)';
+                          }}
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <Link
-                href="/trip/create"
-                className="btn btn-green"
-                style={{
-                  textDecoration: 'none',
-                  width: 'fit-content',
-                }}
-              >
-                <PlusCircle size={16} /> New Trip
-              </Link>
+              <UserAvatarMenu />
             </div>
           </SignedIn>
           <SignedIn>
@@ -574,44 +638,6 @@ export default function DashboardPage() {
             <p>Please sign in to access your dashboard.</p>
           </SignedOut>
 
-          {/* User Info Section */}
-          <div
-            className="simple-card"
-            style={{
-              marginTop: '2rem',
-              padding: '1.5rem',
-              width: 'fit-content',
-              minWidth: '250px',
-            }}
-          >
-            <SignedIn>
-              <div style={{ textAlign: 'left' }}>
-                <UserInfo />
-
-                <SignOutButton redirectUrl="/">
-                  <span
-                    style={{
-                      marginTop: '1rem',
-                      display: 'block',
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                      fontSize: '0.9rem',
-                      opacity: 0.7,
-                    }}
-                  >
-                    Sign Out
-                  </span>
-                </SignOutButton>
-              </div>
-            </SignedIn>
-            <SignedOut>
-              <p
-                style={{ textAlign: 'left', fontSize: '0.9rem', opacity: 0.8 }}
-              >
-                Sign in required
-              </p>
-            </SignedOut>
-          </div>
         </div>
       </main>
     </div>

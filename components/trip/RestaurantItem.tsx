@@ -22,6 +22,7 @@ interface TripItem {
   originPlaceAddress?: string;
   originPlaceCity?: string;
   originPlacePhone?: string;
+  originPlacePhotos?: string;
   destinationPlaceName?: string;
   destinationPlaceShortName?: string;
   destinationPlaceAddress?: string;
@@ -43,6 +44,11 @@ interface RestaurantItemProps {
 
 export default function RestaurantItem({ item, trip }: RestaurantItemProps) {
   const data = item.data ? JSON.parse(item.data) : {};
+
+  // Parse photos from JSON string
+  const photos = item.originPlacePhotos
+    ? JSON.parse(item.originPlacePhotos)
+    : [];
 
   return (
     <>
@@ -88,6 +94,34 @@ export default function RestaurantItem({ item, trip }: RestaurantItemProps) {
               : 'Date TBD'}
           </div>
         </div>
+
+        {/* Restaurant Photos */}
+        {photos.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              marginTop: '1rem',
+              marginBottom: '1rem',
+              overflowX: 'auto',
+            }}
+          >
+            {photos.slice(0, 3).map((photoUrl: string, index: number) => (
+              <img
+                key={index}
+                src={photoUrl}
+                alt={`${item.title || 'Restaurant'} photo ${index + 1}`}
+                style={{
+                  width: '160px',
+                  height: '120px',
+                  objectFit: 'cover',
+                  borderRadius: '8px',
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Restaurant Details */}
         <div className="item-details">

@@ -104,6 +104,7 @@ export async function GET(
         originPlacePostalCode: originPlace.postalCode,
         originPlaceTimezone: originPlace.timezone,
         originPlacePhone: originPlace.phone,
+        originPlacePhotos: originPlace.photos,
         // Destination place information
         destinationPlaceName: destinationPlace.name,
         destinationPlaceShortName: destinationPlace.shortName,

@@ -22,6 +22,7 @@ interface TripItem {
   originPlaceAddress?: string;
   originPlaceCity?: string;
   originPlacePhone?: string;
+  originPlacePhotos?: string;
   destinationPlaceName?: string;
   destinationPlaceShortName?: string;
   destinationPlaceAddress?: string;
@@ -55,6 +56,11 @@ export default function HotelItem({ item, trip }: HotelItemProps) {
     }
     return 'TBD nights';
   };
+
+  // Parse photos from JSON string
+  const photos = item.originPlacePhotos
+    ? JSON.parse(item.originPlacePhotos)
+    : [];
 
   return (
     <>
@@ -103,6 +109,34 @@ export default function HotelItem({ item, trip }: HotelItemProps) {
           </div>
         </div>
 
+        {/* Hotel Photos */}
+        {photos.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              marginTop: '1rem',
+              marginBottom: '1rem',
+              overflowX: 'auto',
+            }}
+          >
+            {photos.slice(0, 3).map((photoUrl: string, index: number) => (
+              <img
+                key={index}
+                src={photoUrl}
+                alt={`${data.hotelName || 'Hotel'} photo ${index + 1}`}
+                style={{
+                  width: '160px',
+                  height: '120px',
+                  objectFit: 'cover',
+                  borderRadius: '8px',
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Hotel Details */}
         <div className="item-details">
           <div
@@ -146,10 +180,10 @@ export default function HotelItem({ item, trip }: HotelItemProps) {
             <Phone size={16} />
             <span
               style={{
-                opacity: item.phoneNumber ? undefined : 0.4,
+                opacity: item.originPlacePhone ? 1 : 0.4,
               }}
             >
-              {item.phoneNumber || '-'}
+              {item.originPlacePhone || '-'}
             </span>
           </div>
           <div className="item-confirmation">

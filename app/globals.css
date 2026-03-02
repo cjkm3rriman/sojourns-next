@@ -1066,6 +1066,27 @@ p {
   cursor: not-allowed;
 }
 
+/* Menu variant — lighter, more white */
+.btn-golden.btn-menu {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.12)
+    ),
+    radial-gradient(
+      120% 140% at 85% 85%,
+      rgba(244, 202, 158, 0.04),
+      rgba(244, 202, 158, 0) 55%
+    ),
+    radial-gradient(
+      120% 140% at 15% 15%,
+      rgba(10, 15, 30, 0.08),
+      rgba(10, 15, 30, 0) 50%
+    );
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
 /* Mobile-specific responsive fixes */
 @media (max-width: 768px) {
   /* Ensure no horizontal overflow */
@@ -1452,6 +1473,15 @@ p {
   margin-bottom: 2rem;
 }
 
+/* Title bar (page-level toolbar) */
+.title-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* Title section styling */
 .title {
   margin-bottom: 3rem;
@@ -1758,6 +1788,323 @@ p {
   min-width: 0.8rem;
   text-align: center;
 }
+
+/* ============================================================
+   CLIENT PAGES
+   ============================================================ */
+
+/* Page layout */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.page-main {
+  display: flex;
+  flex-direction: column;
+  padding: 5rem 2rem 2rem 2rem;
+  min-height: 100vh;
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-main--form {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem 2rem 2rem 2rem;
+  height: 100vh;
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+/* Back navigation */
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.15s;
+}
+
+.back-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Search bar */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 300px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.search-input {
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-size: 0.9rem;
+  width: 100%;
+  height: 42px;
+  box-sizing: border-box;
+}
+
+/* Client card grid */
+.client-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Client card */
+.client-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.client-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.client-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.client-card__names {
+  overflow: hidden;
+}
+
+/* Client avatar (shared between list + detail) */
+.client-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(212, 175, 55, 0.15);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  color: #d4af37;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.client-avatar--sm {
+  width: 44px;
+  height: 44px;
+  font-size: 0.9rem;
+}
+
+.client-avatar--lg {
+  width: 56px;
+  height: 56px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.client-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  font-family: var(--font-sojourns), serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.client-email {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Client detail page */
+.client-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.client-detail-meta {
+  margin: 0;
+  opacity: 0.5;
+  font-size: 0.85rem;
+}
+
+.client-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.client-detail-card {
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+  max-width: 800px;
+}
+
+/* Form layout (create page) */
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 500px) 1fr;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.form-field {
+  margin-bottom: 1.5rem;
+}
+
+.form-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Field labels */
+.field-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.field-label--required::after {
+  content: ' *';
+  color: #d4af37;
+}
+
+.field-meta-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 0.4rem;
+}
+
+/* Field inputs */
+.field-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.field-input--sm {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.field-input--sm:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.field-textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.field-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.field-value {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Button variants for client pages */
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: inherit;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-danger {
+  background: rgba(220, 50, 50, 0.12);
+  border: 1px solid rgba(220, 50, 50, 0.3) !important;
+  color: rgba(255, 100, 100, 0.9);
+}
+
+.btn-danger:hover {
+  background: rgba(220, 50, 50, 0.2);
+}
+
+/* ============================================================ */
 
 body::after {
   content: '';

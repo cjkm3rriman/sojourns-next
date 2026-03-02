@@ -68,6 +68,11 @@ export async function processRestaurantItem(
     }
   }
 
+  // Look up place name from createdPlaces array
+  const restaurantPlace = createdPlaces.find(
+    (p) => p.id === restaurantPlaceId,
+  );
+
   const processedItem = {
     type: 'restaurant',
     title: item.restaurantName || 'Restaurant',
@@ -77,6 +82,8 @@ export async function processRestaurantItem(
     endDate: endDate,
     originPlaceId: restaurantPlaceId,
     destinationPlaceId: null,
+    originPlaceName: restaurantPlace?.name || null,
+    originPlaceCity: restaurantPlace?.city || null,
     originLocationSpecific: null, // Table details, private dining room, etc.
     destinationLocationSpecific: null,
     confirmationNumber: item.confirmationNumber || null,
@@ -90,6 +97,8 @@ export async function processRestaurantItem(
     },
   };
 
-  console.log(`Restaurant ${item.restaurantName}: processed restaurant item`);
+  console.log(
+    `Restaurant ${item.restaurantName}: originPlaceId=${restaurantPlaceId} (${restaurantPlace?.name})`,
+  );
   processedItems.push(processedItem);
 }
