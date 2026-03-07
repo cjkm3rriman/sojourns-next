@@ -36,9 +36,7 @@ export async function findOrCreateAirport(
     }
 
     // Airport doesn't exist, query AirLabs airports API
-    console.log(
-      `Airport ${iataCode} not found, querying AirLabs airports API`,
-    );
+    console.log(`Airport ${iataCode} not found, querying AirLabs airports API`);
 
     const airportResponse = await fetch(
       `https://airlabs.co/api/v9/airports?api_key=${process.env.AIRLABS_API_KEY}&iata_code=${iataCode}`,
@@ -59,7 +57,10 @@ export async function findOrCreateAirport(
     const airportDataResponse = await airportResponse.json();
 
     // AirLabs returns an array in the 'response' field
-    if (!airportDataResponse.response || airportDataResponse.response.length === 0) {
+    if (
+      !airportDataResponse.response ||
+      airportDataResponse.response.length === 0
+    ) {
       console.warn(`No airport data found for ${iataCode} in AirLabs response`);
       return null;
     }
@@ -345,7 +346,9 @@ export async function processFlightItem(
           db,
           createdPlaces,
         );
-        console.log(`Origin airport: ${firstFlight.dep_iata} -> ${originPlaceId}`);
+        console.log(
+          `Origin airport: ${firstFlight.dep_iata} -> ${originPlaceId}`,
+        );
       }
 
       // Process destination airport from AirLabs arrival data

@@ -45,6 +45,10 @@ export const organizations = pgTable('organizations', {
   name: text('name').notNull(),
   slug: text('slug').unique().notNull(),
   flightsPhoneNumber: text('flights_phone_number'), // Flight desk phone number for the organization
+  fromEmail: text('from_email'), // e.g. "Luxury Travel <hello@myagency.com>", fallback to RESEND_FROM env var
+  logoSquareUrl: text('logo_square_url'),
+  logoWordmarkUrl: text('logo_wordmark_url'),
+  headerImageUrl: text('header_image_url'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -56,6 +60,9 @@ export const users = pgTable('users', {
   email: text('email').notNull(),
   name: text('name').notNull(),
   role: userRoleEnum('role').notNull(),
+  revealPin: text('reveal_pin'), // bcrypt hash, nullable until set
+  revealPinAttempts: integer('reveal_pin_attempts').default(0).notNull(),
+  revealPinLockedUntil: timestamp('reveal_pin_locked_until'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -211,11 +218,21 @@ export const items = pgTable('items', {
 export const clients = pgTable('clients', {
   id: uuid('id').primaryKey().defaultRandom(),
   firstName: text('first_name').notNull(),
+  middleName: text('middle_name'),
   lastName: text('last_name').notNull(),
+  dateOfBirth: text('date_of_birth'), // YYYY-MM-DD
+  weddingAnniversary: text('wedding_anniversary'), // YYYY-MM-DD
   email: text('email'),
   phone: text('phone'),
-  address: text('address'),
-  travelPreferences: text('travel_preferences'),
+  addressLine1: text('address_line1'),
+  addressLine2: text('address_line2'),
+  city: text('city'),
+  state: text('state'),
+  zip: text('zip'),
+  country: text('country'),
+  allergies: text('allergies'),
+  flightPreferences: text('flight_preferences'),
+  otherPreferences: text('other_preferences'),
   notes: text('notes'),
   organizationId: uuid('organization_id')
     .references(() => organizations.id)
@@ -225,6 +242,31 @@ export const clients = pgTable('clients', {
     .notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Client cards table - stores card metadata; sensitive data lives in 1Password
+export const clientCards = pgTable('client_cards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id')
+    .references(() => clients.id)
+    .notNull(),
+  last4: text('last_4').notNull(),
+  expiry: text('expiry').notNull(), // MM/YYYY
+  cardType: text('card_type'), // Visa, Mastercard, Amex, etc.
+  opItemId: text('op_item_id').notNull(), // 1Password item ID
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Client passports table - stores passport metadata; sensitive data lives in 1Password
+export const clientPassports = pgTable('client_passports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id')
+    .references(() => clients.id)
+    .notNull(),
+  issuingCountry: text('issuing_country'),
+  expiryDate: text('expiry_date').notNull(), // YYYY-MM-DD
+  opItemId: text('op_item_id').notNull(), // 1Password item ID
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // Documents table - track uploaded files and their processing status
@@ -326,7 +368,7 @@ export const documentsRelations = relations(documents, ({ one }) => ({
   }),
 }));
 
-export const clientsRelations = relations(clients, ({ one }) => ({
+export const clientsRelations = relations(clients, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [clients.organizationId],
     references: [organizations.id],
@@ -334,5 +376,96 @@ export const clientsRelations = relations(clients, ({ one }) => ({
   agent: one(users, {
     fields: [clients.agentId],
     references: [users.id],
+  }),
+  cards: many(clientCards),
+  passports: many(clientPassports),
+  loyalty: many(clientLoyalty),
+  portal: one(clientPortals, {
+    fields: [clients.id],
+    references: [clientPortals.clientId],
+  }),
+}));
+
+export const clientCardsRelations = relations(clientCards, ({ one }) => ({
+  client: one(clients, {
+    fields: [clientCards.clientId],
+    references: [clients.id],
+  }),
+}));
+
+export const clientPassportsRelations = relations(clientPassports, ({ one }) => ({
+  client: one(clients, {
+    fields: [clientPassports.clientId],
+    references: [clients.id],
+  }),
+}));
+
+// Client loyalty programs — frequent flyer, hotel points, KTN, etc.
+export const clientLoyalty = pgTable('client_loyalty', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id').references(() => clients.id).notNull(),
+  programName: text('program_name').notNull(),
+  memberNumber: text('member_number').notNull(),
+  expiryDate: text('expiry_date'), // YYYY-MM-DD, nullable
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Client portals — one per client; stable slug for portal URL
+export const clientPortals = pgTable('client_portals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id').references(() => clients.id).notNull().unique(),
+  slug: text('slug').unique().notNull(), // nanoid(10) — stable portal URL identifier
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Portal tokens — magic link tokens; sections set at send time by link flavour
+export const portalTokens = pgTable('portal_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  portalId: uuid('portal_id').references(() => clientPortals.id).notNull(),
+  token: text('token').unique().notNull(), // nanoid(48)
+  sections: text('sections').notNull(), // JSON string[] e.g. '["profile","preferences"]'
+  usedAt: timestamp('used_at'), // null = unused; set on first use
+  expiresAt: timestamp('expires_at').notNull(), // createdAt + 24h
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Portal sessions — created when client clicks magic link; valid 2 hours
+export const portalSessions = pgTable('portal_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  portalId: uuid('portal_id').references(() => clientPortals.id).notNull(),
+  sessionToken: text('session_token').unique().notNull(), // nanoid(64)
+  sections: text('sections').notNull(), // copied from token at session creation
+  expiresAt: timestamp('expires_at').notNull(), // createdAt + 2h
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const clientPortalsRelations = relations(clientPortals, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [clientPortals.clientId],
+    references: [clients.id],
+  }),
+  tokens: many(portalTokens),
+  sessions: many(portalSessions),
+}));
+
+export const portalTokensRelations = relations(portalTokens, ({ one }) => ({
+  portal: one(clientPortals, {
+    fields: [portalTokens.portalId],
+    references: [clientPortals.id],
+  }),
+}));
+
+export const portalSessionsRelations = relations(portalSessions, ({ one }) => ({
+  portal: one(clientPortals, {
+    fields: [portalSessions.portalId],
+    references: [clientPortals.id],
+  }),
+}));
+
+export const clientLoyaltyRelations = relations(clientLoyalty, ({ one }) => ({
+  client: one(clients, {
+    fields: [clientLoyalty.clientId],
+    references: [clients.id],
   }),
 }));

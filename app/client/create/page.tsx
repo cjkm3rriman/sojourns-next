@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import PhoneInput from 'react-phone-number-input';
 
 export default function CreateClientPage() {
   const router = useRouter();
@@ -44,14 +45,17 @@ export default function CreateClientPage() {
     } catch (error) {
       console.error('Error creating client:', error);
       alert(
-        error instanceof Error ? error.message : 'Failed to create client. Please try again.',
+        error instanceof Error
+          ? error.message
+          : 'Failed to create client. Please try again.',
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const canSubmit = form.firstName.trim() && form.lastName.trim() && !isSubmitting;
+  const canSubmit =
+    form.firstName.trim() && form.lastName.trim() && !isSubmitting;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
@@ -69,7 +73,10 @@ export default function CreateClientPage() {
               <form onSubmit={handleSubmit}>
                 <div className="form-field-row">
                   <div>
-                    <label htmlFor="firstName" className="field-label field-label--required">
+                    <label
+                      htmlFor="firstName"
+                      className="field-label field-label--required"
+                    >
                       First Name
                     </label>
                     <input
@@ -84,7 +91,10 @@ export default function CreateClientPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="field-label field-label--required">
+                    <label
+                      htmlFor="lastName"
+                      className="field-label field-label--required"
+                    >
                       Last Name
                     </label>
                     <input
@@ -116,17 +126,12 @@ export default function CreateClientPage() {
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="phone" className="field-label">
-                    Phone
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
+                  <label className="field-label">Phone</label>
+                  <PhoneInput
                     value={form.phone}
-                    onChange={handleChange}
+                    onChange={(v) => setForm((prev) => ({ ...prev, phone: v ?? '' }))}
+                    defaultCountry="US"
                     placeholder="+1 212 555 4444"
-                    className="field-input"
                   />
                 </div>
               </form>
@@ -137,7 +142,10 @@ export default function CreateClientPage() {
                 onClick={handleSubmit}
                 className="btn btn-golden btn-auto"
                 disabled={!canSubmit}
-                style={{ opacity: canSubmit ? 1 : 0.5, cursor: canSubmit ? 'pointer' : 'not-allowed' }}
+                style={{
+                  opacity: canSubmit ? 1 : 0.5,
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                }}
               >
                 {isSubmitting ? 'Creating...' : 'Create Client →'}
               </button>

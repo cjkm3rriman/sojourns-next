@@ -100,9 +100,7 @@ export async function analyzeWithAI(
 
   // Ensure required arrays exist
   if (!Array.isArray(extractedData.items)) {
-    console.warn(
-      'AI response missing items array, defaulting to empty array',
-    );
+    console.warn('AI response missing items array, defaulting to empty array');
     extractedData.items = [];
   }
 
@@ -125,13 +123,7 @@ export async function processExtractedItems(
   for (const item of extractedData.items) {
     // Handle different item types
     if (item.type === 'flight') {
-      await processFlightItem(
-        item,
-        tripId,
-        db,
-        createdPlaces,
-        processedItems,
-      );
+      await processFlightItem(item, tripId, db, createdPlaces, processedItems);
     } else if (item.type === 'hotel') {
       await processHotelItem(item, db, createdPlaces, processedItems);
     } else if (item.type === 'transfer') {
@@ -139,12 +131,7 @@ export async function processExtractedItems(
     } else if (item.type === 'activity') {
       await processActivityItem(item, db, createdPlaces, processedItems);
     } else if (item.type === 'restaurant') {
-      await processRestaurantItem(
-        item,
-        db,
-        createdPlaces,
-        processedItems,
-      );
+      await processRestaurantItem(item, db, createdPlaces, processedItems);
     } else {
       console.warn(`Unknown item type: ${item.type}, skipping`);
     }
@@ -152,13 +139,9 @@ export async function processExtractedItems(
 
   // Helper function to link transfer places to flights and hotels
   async function linkTransferPlaces(processedItems: any[]) {
-    const flights = processedItems.filter(
-      (item) => item.type === 'flight',
-    );
+    const flights = processedItems.filter((item) => item.type === 'flight');
     const hotels = processedItems.filter((item) => item.type === 'hotel');
-    const transfers = processedItems.filter(
-      (item) => item.type === 'transfer',
-    );
+    const transfers = processedItems.filter((item) => item.type === 'transfer');
 
     console.log(
       `🚗 TRANSFER LINKING: Processing ${transfers.length} transfers with ${flights.length} flights and ${hotels.length} hotels`,
@@ -175,13 +158,9 @@ export async function processExtractedItems(
       const pickupLocation = transferData.pickupLocation;
       const dropoffLocation = transferData.dropoffLocation;
 
-      console.log(
-        `\n📍 Processing transfer: ${transferData.contactName}`,
-      );
+      console.log(`\n📍 Processing transfer: ${transferData.contactName}`);
       console.log(`   AI extracted pickupLocation: "${pickupLocation}"`);
-      console.log(
-        `   AI extracted dropoffLocation: "${dropoffLocation}"`,
-      );
+      console.log(`   AI extracted dropoffLocation: "${dropoffLocation}"`);
       console.log(`   Transfer time: ${transfer.startDate}`);
 
       // Try to match pickup location
@@ -265,9 +244,7 @@ export async function processExtractedItems(
   ) {
     if (!locationRef) return null;
 
-    console.log(
-      `    🎯 matchLocationToPlace: "${locationRef}" (${direction})`,
-    );
+    console.log(`    🎯 matchLocationToPlace: "${locationRef}" (${direction})`);
     console.log(
       `       Available flights: ${flights.length}, hotels: ${hotels.length}`,
     );
@@ -357,9 +334,7 @@ export async function processExtractedItems(
         ).toLowerCase();
 
         console.log(`          Origin airport: "${originAirport}"`);
-        console.log(
-          `          Destination airport: "${destinationAirport}"`,
-        );
+        console.log(`          Destination airport: "${destinationAirport}"`);
 
         // Check if the location reference matches the airport names
         const originMatch =
@@ -507,9 +482,7 @@ export async function processExtractedItems(
     const nearbyItems = allItems.filter((item) => {
       if (!item.startDate) return false;
       const itemTime = new Date(item.startDate);
-      const timeDiff = Math.abs(
-        transferTime.getTime() - itemTime.getTime(),
-      );
+      const timeDiff = Math.abs(transferTime.getTime() - itemTime.getTime());
       return timeDiff <= timeWindow;
     });
 
@@ -522,12 +495,8 @@ export async function processExtractedItems(
         // For flights, use END time (arrival time) and check it's before or at transfer time
         const flightEndTime = new Date(item.endDate || item.startDate);
         if (flightEndTime <= transferTime) {
-          const timeDiff =
-            transferTime.getTime() - flightEndTime.getTime();
-          if (
-            timeDiff <= timeWindow &&
-            timeDiff < closestPickupTimeDiff
-          ) {
+          const timeDiff = transferTime.getTime() - flightEndTime.getTime();
+          if (timeDiff <= timeWindow && timeDiff < closestPickupTimeDiff) {
             closestPickupItem = item;
             closestPickupTimeDiff = timeDiff;
           }
@@ -706,9 +675,7 @@ export async function processExtractedItems(
         itemIcon = 'hotel';
       } else if (itemType === 'transfer') {
         generatedTitle =
-          itemData.data?.contactName ||
-          itemData.title ||
-          'Transfer Service';
+          itemData.data?.contactName || itemData.title || 'Transfer Service';
         itemIcon = 'transfer';
       } else if (itemType === 'activity') {
         generatedTitle = itemData.title || 'Activity';

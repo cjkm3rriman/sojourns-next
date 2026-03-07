@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { clients, users, memberships } from '@/lib/db/schema';
-import { eq, desc, ilike, or, and } from 'drizzle-orm';
+import { clients, users, memberships, clientCards, clientPassports } from '@/lib/db/schema';
+import { eq, desc, ilike, or, and, inArray, count } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,7 +58,35 @@ export async function GET(request: NextRequest) {
       .where(whereClause)
       .orderBy(desc(clients.createdAt));
 
-    return NextResponse.json({ clients: orgClients });
+    if (orgClients.length === 0) {
+      return NextResponse.json({ clients: [] });
+    }
+
+    const clientIds = orgClients.map((c) => c.id);
+
+    const [cardCounts, passportCounts] = await Promise.all([
+      db
+        .select({ clientId: clientCards.clientId, n: count() })
+        .from(clientCards)
+        .where(inArray(clientCards.clientId, clientIds))
+        .groupBy(clientCards.clientId),
+      db
+        .select({ clientId: clientPassports.clientId, n: count() })
+        .from(clientPassports)
+        .where(inArray(clientPassports.clientId, clientIds))
+        .groupBy(clientPassports.clientId),
+    ]);
+
+    const cardMap = Object.fromEntries(cardCounts.map((r) => [r.clientId, r.n]));
+    const passportMap = Object.fromEntries(passportCounts.map((r) => [r.clientId, r.n]));
+
+    const result = orgClients.map((c) => ({
+      ...c,
+      cardCount: cardMap[c.id] ?? 0,
+      passportCount: passportMap[c.id] ?? 0,
+    }));
+
+    return NextResponse.json({ clients: result });
   } catch (error) {
     console.error('Error fetching clients:', error);
     return NextResponse.json(
@@ -77,7 +105,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, email, phone, address, travelPreferences, notes } = body;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      zip,
+      country,
+      allergies,
+      flightPreferences,
+      otherPreferences,
+      notes,
+    } = body;
 
     if (!firstName?.trim()) {
       return NextResponse.json(
@@ -127,8 +170,15 @@ export async function POST(request: NextRequest) {
         lastName: lastName.trim(),
         email: email?.trim() || null,
         phone: phone?.trim() || null,
-        address: address?.trim() || null,
-        travelPreferences: travelPreferences?.trim() || null,
+        addressLine1: addressLine1?.trim() || null,
+        addressLine2: addressLine2?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim() || null,
+        zip: zip?.trim() || null,
+        country: country?.trim() || null,
+        allergies: allergies?.trim() || null,
+        flightPreferences: flightPreferences?.trim() || null,
+        otherPreferences: otherPreferences?.trim() || null,
         notes: notes?.trim() || null,
         organizationId,
         agentId: dbUserId,

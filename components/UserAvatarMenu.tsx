@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useClerk, useUser } from '@clerk/nextjs';
 import { Settings, LogOut } from 'react-feather';
 
@@ -20,7 +21,7 @@ export default function UserAvatarMenu() {
   useEffect(() => {
     if (!isLoaded || !user) return;
     fetch('/api/user-display-data')
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => setUserData(data))
       .catch(() => {
         setUserData({ imageUrl: user.imageUrl });
@@ -121,37 +122,46 @@ export default function UserAvatarMenu() {
             }}
           >
             {userData.name && (
-              <div style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.2 }}>
+              <div
+                style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.2 }}
+              >
                 {userData.name}
               </div>
             )}
             {userData.organization?.name && (
-              <div style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '2px' }}>
+              <div
+                style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '2px' }}
+              >
                 {userData.organization.name}
               </div>
             )}
           </div>
-          <button
-            disabled
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.6rem',
               width: '100%',
-              textAlign: 'left',
               padding: '0.55rem 0.85rem',
               background: 'transparent',
-              border: 'none',
               borderRadius: '8px',
               color: 'inherit',
               fontSize: '0.9rem',
-              opacity: 0.4,
-              cursor: 'not-allowed',
+              textDecoration: 'none',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
             }}
           >
             <Settings size={14} />
             Settings
-          </button>
+          </Link>
           <button
             onClick={() => signOut({ redirectUrl: '/' })}
             style={{

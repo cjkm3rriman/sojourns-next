@@ -31,7 +31,12 @@ export default function PageSwitcher() {
       <button
         onClick={() => setOpen((o) => !o)}
         className="btn btn-golden btn-menu input-rounded"
-        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          whiteSpace: 'nowrap',
+        }}
       >
         <current.icon size={15} />
         {current.label}
@@ -95,7 +100,14 @@ export default function PageSwitcher() {
                   e.currentTarget.style.background = 'transparent';
               }}
             >
-              <page.icon size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle', opacity: 0.8 }} />
+              <page.icon
+                size={14}
+                style={{
+                  marginRight: '0.5rem',
+                  verticalAlign: 'middle',
+                  opacity: 0.8,
+                }}
+              />
               {page.label}
             </button>
           ))}

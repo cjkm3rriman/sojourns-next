@@ -2,7 +2,7 @@
 import NextDynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PlusCircle, Search, Shuffle } from 'react-feather';
+import { PlusCircle, Search, Shuffle, CreditCard, Book, Users, Mail, Phone, Calendar } from 'react-feather';
 import PageSwitcher from '@/components/PageSwitcher';
 import SojournsHeader from '@/components/SojournsHeader';
 
@@ -27,13 +27,21 @@ interface Client {
   id: string;
   firstName: string;
   lastName: string;
+  dateOfBirth?: string | null;
   email?: string | null;
   phone?: string | null;
-  address?: string | null;
-  travelPreferences?: string | null;
-  notes?: string | null;
   createdAt: string;
   updatedAt: string;
+  cardCount: number;
+  passportCount: number;
+}
+
+function formatShortDOB(dob: string | null | undefined): string {
+  if (!dob) return '';
+  const [year, month, day] = dob.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'short' });
+  return `${monthName} ${day}, ${year}`;
 }
 
 function getInitials(firstName: string, lastName: string) {
@@ -43,8 +51,11 @@ function getInitials(firstName: string, lastName: string) {
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'created' | 'name' | 'updated'>('created');
+  const [sortBy, setSortBy] = useState<'created' | 'name' | 'updated'>(
+    'created',
+  );
 
   useEffect(() => {
     async function fetchClients() {
@@ -53,9 +64,12 @@ export default function ClientsPage() {
         if (response.ok) {
           const data = await response.json();
           setClients(data.clients);
+        } else {
+          setError(true);
         }
       } catch (error) {
         console.error('Error fetching clients:', error);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -71,11 +85,18 @@ export default function ClientsPage() {
     })
     .sort((a, b) => {
       if (sortBy === 'created') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       } else if (sortBy === 'updated') {
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        return (
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
       } else {
-        return a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName);
+        return (
+          a.lastName.localeCompare(b.lastName) ||
+          a.firstName.localeCompare(b.firstName)
+        );
       }
     });
 
@@ -87,7 +108,11 @@ export default function ClientsPage() {
           <div className="title-bar">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <PageSwitcher />
-              <Link href="/client/create" className="btn btn-green" style={{ textDecoration: 'none', width: 'fit-content' }}>
+              <Link
+                href="/client/create"
+                className="btn btn-green"
+                style={{ textDecoration: 'none', width: 'fit-content' }}
+              >
                 <PlusCircle size={16} /> New
               </Link>
               <div className="search-wrapper">
@@ -103,14 +128,22 @@ export default function ClientsPage() {
               <button
                 onClick={() =>
                   setSortBy(
-                    sortBy === 'created' ? 'name' : sortBy === 'name' ? 'updated' : 'created',
+                    sortBy === 'created'
+                      ? 'name'
+                      : sortBy === 'name'
+                        ? 'updated'
+                        : 'created',
                   )
                 }
                 className="btn btn-golden input-rounded"
                 title={`Currently sorting by ${sortBy}`}
               >
                 <Shuffle size={16} />
-                {sortBy === 'created' ? 'Created' : sortBy === 'name' ? 'Name' : 'Updated'}
+                {sortBy === 'created'
+                  ? 'Created'
+                  : sortBy === 'name'
+                    ? 'Name'
+                    : 'Updated'}
               </button>
             </div>
             <UserAvatarMenu />
@@ -118,6 +151,8 @@ export default function ClientsPage() {
 
           {loading ? (
             <p style={{ opacity: 0.7 }}>Loading clients...</p>
+          ) : error ? (
+            <p style={{ opacity: 0.7 }}>There was a problem retrieving your clients, please try again later.</p>
           ) : filteredClients.length > 0 ? (
             <div className="client-grid">
               {filteredClients.map((client) => (
@@ -127,25 +162,39 @@ export default function ClientsPage() {
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
                   <div className="simple-card client-card">
-                    <div className="client-card__header">
-                      <div className="client-avatar client-avatar--sm">
-                        {getInitials(client.firstName, client.lastName)}
+                    <div className="client-avatar client-avatar--sm">
+                      {getInitials(client.firstName, client.lastName)}
+                    </div>
+                    <div className="client-card__names">
+                      <div className="client-name">
+                        {client.firstName} {client.lastName}
                       </div>
-                      <div className="client-card__names">
-                        <div className="client-name">
-                          {client.firstName} {client.lastName}
-                        </div>
-                        {client.email && (
-                          <div className="client-email">{client.email}</div>
-                        )}
+                      <div className="client-card__counts">
+                        <span className="client-card__count">
+                          <Users size={12} />
+                          1
+                        </span>
+                        <span className="client-card__count">
+                          <CreditCard size={12} />
+                          {client.cardCount}
+                        </span>
+                        <span className="client-card__count">
+                          <Book size={12} />
+                          {client.passportCount}
+                        </span>
                       </div>
                     </div>
+                    {client.email && <span className="client-card__meta-cell"><Mail size={13} />{client.email}</span>}
+                    {client.phone && <span className="client-card__meta-cell"><Phone size={13} />{client.phone}</span>}
+                    {client.dateOfBirth && <span className="client-card__meta-cell"><Calendar size={13} />{formatShortDOB(client.dateOfBirth)}</span>}
                   </div>
                 </Link>
               ))}
             </div>
           ) : clients.length > 0 ? (
-            <p style={{ opacity: 0.7 }}>No clients match &quot;{searchQuery}&quot;.</p>
+            <p style={{ opacity: 0.7 }}>
+              No clients match &quot;{searchQuery}&quot;.
+            </p>
           ) : (
             <p>No clients yet. Add your first client to get started!</p>
           )}

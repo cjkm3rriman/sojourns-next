@@ -242,11 +242,21 @@ export async function POST(
         console.log('Analyzing document with GPT-5.2 Responses API...');
 
         // Use utility to analyze document with AI
-        const extractedData = await analyzeWithAI(userMessage, vectorStoreId, openai);
+        const extractedData = await analyzeWithAI(
+          userMessage,
+          vectorStoreId,
+          openai,
+        );
 
         // Process extracted items and create database records
         console.log(`Processing extracted items for trip ${tripId}...`);
-        await processExtractedItems(extractedData, tripId, db, createdPlaces, createdItems);
+        await processExtractedItems(
+          extractedData,
+          tripId,
+          db,
+          createdPlaces,
+          createdItems,
+        );
 
         // Update document status and save extracted data
         await db

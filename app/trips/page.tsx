@@ -209,8 +209,7 @@ export default function DashboardPage() {
 
       // If no statuses selected, show all trips
       const matchesStatus =
-        selectedStatuses.length === 0 ||
-        selectedStatuses.includes(trip.status);
+        selectedStatuses.length === 0 || selectedStatuses.includes(trip.status);
 
       return matchesSearch && matchesStatus;
     })
@@ -637,7 +636,6 @@ export default function DashboardPage() {
           <SignedOut>
             <p>Please sign in to access your dashboard.</p>
           </SignedOut>
-
         </div>
       </main>
     </div>

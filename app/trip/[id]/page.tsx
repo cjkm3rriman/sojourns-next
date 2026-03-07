@@ -708,9 +708,17 @@ export default function TripDetailPage() {
                   <p style={{ margin: 0, padding: 0, fontSize: '1rem' }}>
                     {viewingPdf.originalName}
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
                     <button
-                      onClick={() => setPdfScale((prev) => Math.max(prev - 0.25, 0.5))}
+                      onClick={() =>
+                        setPdfScale((prev) => Math.max(prev - 0.25, 0.5))
+                      }
                       disabled={pdfScale <= 0.5}
                       style={{
                         background: 'none',
@@ -729,7 +737,9 @@ export default function TripDetailPage() {
                       <ZoomOut size={20} />
                     </button>
                     <button
-                      onClick={() => setPdfScale((prev) => Math.min(prev + 0.25, 3.0))}
+                      onClick={() =>
+                        setPdfScale((prev) => Math.min(prev + 0.25, 3.0))
+                      }
                       disabled={pdfScale >= 3.0}
                       style={{
                         background: 'none',

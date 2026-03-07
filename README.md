@@ -16,7 +16,8 @@ A concise overview of the project with links to deeper documentation and standar
 - Setup:
   - Copy envs: `cp .env.example .env.local` and fill Clerk keys.
   - Install deps: `make setup` (or `npm ci`).
-- Develop: `make run` (or `npm run dev`) and visit http://localhost:3000.
+- Develop: `vercel dev` and visit http://localhost:3000.
+- Sync Env Variables `vercel env pull`
 - Test: `make test` (or `npm test`) for unit tests with coverage (Vitest).
 - Lint/Format: `make lint` and `make fmt` (or `npm run lint` / `npm run fmt`).
 

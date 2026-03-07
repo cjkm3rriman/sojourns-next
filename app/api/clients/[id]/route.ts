@@ -102,15 +102,27 @@ export async function PATCH(
 
     const allowedFields = [
       'firstName',
+      'middleName',
       'lastName',
+      'dateOfBirth',
+      'weddingAnniversary',
       'email',
       'phone',
-      'address',
-      'travelPreferences',
+      'addressLine1',
+      'addressLine2',
+      'city',
+      'state',
+      'zip',
+      'country',
+      'allergies',
+      'flightPreferences',
+      'otherPreferences',
       'notes',
     ] as const;
 
-    const updates: Record<string, string | null> = { updatedAt: new Date().toISOString() };
+    const updates: Record<string, string | null> = {
+      updatedAt: new Date().toISOString(),
+    };
     for (const field of allowedFields) {
       if (field in body) {
         updates[field] = body[field]?.trim() || null;

@@ -1,6 +1,8 @@
 import Providers from './providers';
 import localFont from 'next/font/local';
 import './globals.css';
+import 'react-phone-number-input/style.css';
+import 'flag-icons/css/flag-icons.min.css';
 
 const sojournsFont = localFont({
   src: '../public/fonts/sojourns.otf',

@@ -165,7 +165,13 @@ export async function POST(
 
     // Process extracted items
     console.log(`Processing extracted items for trip ${tripId}...`);
-    await processExtractedItems(extractedData, tripId, db, createdPlaces, createdItems);
+    await processExtractedItems(
+      extractedData,
+      tripId,
+      db,
+      createdPlaces,
+      createdItems,
+    );
 
     console.log(
       `✅ Text analysis complete! Created ${createdItems.length} items and ${createdPlaces.length} places.`,
@@ -182,7 +188,10 @@ export async function POST(
     console.error('Error analyzing text:', error);
 
     // Handle specific error cases
-    if (error.message?.includes('quota') || error.message?.includes('credits')) {
+    if (
+      error.message?.includes('quota') ||
+      error.message?.includes('credits')
+    ) {
       return NextResponse.json(
         {
           error: 'OpenAI credits depleted',
@@ -196,7 +205,8 @@ export async function POST(
     return NextResponse.json(
       {
         error: error.message || 'Failed to analyze text',
-        userMessage: error.message || 'An unexpected error occurred during text analysis',
+        userMessage:
+          error.message || 'An unexpected error occurred during text analysis',
       },
       { status: 500 },
     );

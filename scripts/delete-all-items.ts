@@ -39,9 +39,7 @@ async function deleteAllItems() {
     if (item.destinationPlaceId) placeIds.add(item.destinationPlaceId);
   }
 
-  console.log(
-    `Found ${placeIds.size} unique places referenced by these items`,
-  );
+  console.log(`Found ${placeIds.size} unique places referenced by these items`);
 
   // Show breakdown by type
   const typeCounts = allItems.reduce(
@@ -64,9 +62,7 @@ async function deleteAllItems() {
   if (!DRY_RUN) {
     try {
       const result = await db.delete(items).where(eq(items.tripId, TRIP_ID));
-      console.log(
-        `✅ Successfully deleted all items from trip ${TRIP_ID}`,
-      );
+      console.log(`✅ Successfully deleted all items from trip ${TRIP_ID}`);
     } catch (error) {
       console.error(`❌ Failed to delete items:`, error);
       throw error;
@@ -136,7 +132,9 @@ async function deleteOrphanedPlaces(placeIdsToCheck: string[]) {
   if (!DRY_RUN) {
     try {
       await db.delete(places).where(inArray(places.id, orphanedPlaces));
-      console.log(`✅ Successfully deleted ${orphanedPlaces.length} orphaned places`);
+      console.log(
+        `✅ Successfully deleted ${orphanedPlaces.length} orphaned places`,
+      );
     } catch (error) {
       console.error(`❌ Failed to delete places:`, error);
       throw error;

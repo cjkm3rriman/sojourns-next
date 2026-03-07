@@ -222,7 +222,9 @@ export async function findOrCreateRestaurant(
     // Fetch photo URLs from Google Places
     let photoUrls: string[] = [];
     if (place.photos && place.photos.length > 0) {
-      console.log(`Fetching ${Math.min(place.photos.length, 5)} photos for ${restaurantName}`);
+      console.log(
+        `Fetching ${Math.min(place.photos.length, 5)} photos for ${restaurantName}`,
+      );
       // Take up to 5 photos
       const photosToFetch = place.photos.slice(0, 5);
       for (const photo of photosToFetch) {
@@ -231,7 +233,10 @@ export async function findOrCreateRestaurant(
           const photoUrl = `https://places.googleapis.com/v1/${photo.name}/media?key=${googlePlacesApiKey}&maxHeightPx=800&maxWidthPx=800`;
           photoUrls.push(photoUrl);
         } catch (photoError) {
-          console.warn(`Error processing photo for ${restaurantName}:`, photoError);
+          console.warn(
+            `Error processing photo for ${restaurantName}:`,
+            photoError,
+          );
         }
       }
       console.log(`Added ${photoUrls.length} photo URLs for ${restaurantName}`);
@@ -483,7 +488,9 @@ export async function findOrCreateHotel(
     // Fetch photo URLs from Google Places
     let photoUrls: string[] = [];
     if (place.photos && place.photos.length > 0) {
-      console.log(`Fetching ${Math.min(place.photos.length, 5)} photos for ${hotelName}`);
+      console.log(
+        `Fetching ${Math.min(place.photos.length, 5)} photos for ${hotelName}`,
+      );
       // Take up to 5 photos
       const photosToFetch = place.photos.slice(0, 5);
       for (const photo of photosToFetch) {

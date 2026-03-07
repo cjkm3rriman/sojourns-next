@@ -69,9 +69,7 @@ export async function processRestaurantItem(
   }
 
   // Look up place name from createdPlaces array
-  const restaurantPlace = createdPlaces.find(
-    (p) => p.id === restaurantPlaceId,
-  );
+  const restaurantPlace = createdPlaces.find((p) => p.id === restaurantPlaceId);
 
   const processedItem = {
     type: 'restaurant',
