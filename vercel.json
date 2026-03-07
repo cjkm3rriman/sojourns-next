@@ -1,6 +1,5 @@
 {
-  "nodeVersion": "22.x",
-  "buildCommand": "npm run build",
+"buildCommand": "npm run build",
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
